@@ -14,4 +14,63 @@ body {
   font-family: "Segoe UI", Roboto, Arial, sans-serif;
   background: #f4f6f9;
   color: #2c2
+/* ==============================
+   OFFICER-GRADE POLISH (STEP-C4)
+================================ */
+
+header {
+  background: linear-gradient(90deg, #0b3c5d, #123c69);
+  letter-spacing: 0.5px;
+}
+
+.top-bar {
+  background: #ffffff;
+  border-left: 6px solid #0b3c5d;
+  font-weight: 600;
+  color: #0b3c5d;
+}
+
+/* KPI cards emphasis */
+.card .value {
+  font-size: 34px;
+  margin-top: 6px;
+}
+
+.card {
+  border-top: 4px solid #0b3c5d;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+}
+
+/* Section headings */
+.section h2 {
+  border-left: 6px solid #0b3c5d;
+  padding-left: 10px;
+  color: #0b3c5d;
+}
+
+/* Select boxes */
+select {
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid #bbb;
+  font-size: 14px;
+}
+
+/* Chart container */
+.chart-box {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Page background */
+body {
+  background: #f2f4f8;
+}
 
