@@ -1,1 +1,17 @@
+/* ===============================
+   R DIVISION – TELOC EYE
+   Modern Analytics Dashboard
+   STEP-C2 : UI / Layout / Theme
+   =============================== */
+
+/* ---------- RESET ---------- */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  background: #f4f6f9;
+  color: #2c2
 
