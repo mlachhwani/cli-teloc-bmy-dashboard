@@ -1,1 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>R Division – TELOC EYE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Main Styles -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-title">
+      R Division – TELOC EYE
+    </div>
+    <div class="header-subtitle">
+      Analytics & Monitoring Dashboard
+    </div>
+  </header>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="top-item">
+      <label>Snapshot Date:</label>
+      <span id="snapshotDate">–</span>
+    </div>
+  </div>
+
+  <!-- MAIN CONTAINER -->
+  <div class="container">
+
+    <!-- KPI CARDS -->
+    <section class="cards">
+
+      <div class="card">
+        <h3>SPM Analyses</h3>
+        <div class="value" id="spmCount">–</div>
+      </div>
+
+      <div class="card">
+        <h3>CVVRS Analyses</h3>
+        <div class="value" id="cvvrsCount">–</div>
+      </div>
+
+      <div class="card">
+        <h3>TELOC Records</h3>
+        <div class="value" id="telocCount">–</div>
+      </div>
+
+      <div class="card">
+        <h3>Bulk Violations</h3>
+        <div class="value" id="bulkCount">–</div>
+      </div>
+
+    </section>
+
+    <!-- CLI PERFORMANCE -->
+    <section class="section">
+      <div class="section-header">
+        <h2>CLI Performance</h2>
+      </div>
+
+      <div class="controls">
+        <label for="cliSelect">Select CLI:</label>
+        <select id="cliSelect">
+          <option value="">Loading…</option>
+        </select>
+      </div>
+
+      <div class="chart-box">
+        <canvas id="cliChart"></canvas>
+      </div>
+    </section>
+
+    <!-- LP PERFORMANCE -->
+    <section class="section">
+      <div class="section-header">
+        <h2>LP Performance</h2>
+      </div>
+
+      <div class="controls">
+        <label for="lpSelect">Select LP:</label>
+        <select id="lpSelect">
+          <option value="">Loading…</option>
+        </select>
+      </div>
+
+      <div class="chart-box">
+        <canvas id="lpChart"></canvas>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    © R Division | TELOC EYE – Analytics System
+  </footer>
+
+  <!-- CONFIG & APP LOGIC -->
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
 
