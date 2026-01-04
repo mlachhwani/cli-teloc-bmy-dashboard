@@ -1,10 +1,9 @@
-/*************************************************
+/****************************************************
  * R DIVISION – TELOC EYE
- * STEP-C3 : Frontend Controller
- * Source: Apps Script JSON API
- *************************************************/
+ * Frontend App Logic (FINAL – STABLE)
+ ****************************************************/
 
-let RAW_DATA = null;
+let DASHBOARD_DATA = null;
 let cliChart = null;
 let lpChart = null;
 
@@ -16,196 +15,170 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 /* ===============================
-   LOAD API DATA
+   LOAD DASHBOARD JSON
 ================================ */
 async function loadDashboard() {
   try {
     const res = await fetch(API_URL);
-    const data = await res.json();
+    if (!res.ok) throw new Error("API response not OK");
 
-    RAW_DATA = data;
+    DASHBOARD_DATA = await res.json();
 
-    console.log("API Loaded ✔", data);
-
-    fillSnapshotDate(data.generated_at);
-    fillKPICards(data.cards);
-    buildCLISection(data);
-    buildLPSection(data);
+    renderSnapshotDate();
+    renderKPIs();
+    initCLISelector();
+    initLPSelector();
 
   } catch (err) {
-    console.error("API ERROR", err);
+    console.error(err);
     alert("Failed to load dashboard data");
   }
 }
 
 /* ===============================
-   TOP DATE
+   SNAPSHOT DATE
 ================================ */
-function fillSnapshotDate(dateStr) {
+function renderSnapshotDate() {
   const el = document.getElementById("snapshotDate");
-  if (!el) return;
-
-  const d = new Date(dateStr);
-  el.textContent = d.toLocaleDateString("en-GB");
+  if (el && DASHBOARD_DATA.snapshot_date) {
+    el.textContent = DASHBOARD_DATA.snapshot_date;
+  }
 }
 
 /* ===============================
    KPI CARDS
 ================================ */
-function fillKPICards(cards) {
-  setText("spmCount", cards.spm.total);
-  setText("cvvrsCount", cards.cvvrs.total);
-  setText("telocCount", cards.teloc.total);
-  setText("bulkCount", cards.bulk.violations_found);
-}
+function renderKPIs() {
+  document.getElementById("spmCount").textContent =
+    DASHBOARD_DATA.kpi.spm ?? "–";
 
-function setText(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = val ?? "–";
+  document.getElementById("cvvrsCount").textContent =
+    DASHBOARD_DATA.kpi.cvvrs ?? "–";
+
+  document.getElementById("telocCount").textContent =
+    DASHBOARD_DATA.kpi.teloc ?? "–";
+
+  document.getElementById("bulkCount").textContent =
+    DASHBOARD_DATA.kpi.bulk ?? "–";
 }
 
 /* ===============================
    CLI PERFORMANCE
-   Source: spm + cvvrs
+   Source: spm.csv + cvvrs.csv
 ================================ */
-function buildCLISection(data) {
+function initCLISelector() {
+  const sel = document.getElementById("cliSelect");
+  sel.innerHTML = "";
 
-  const cliMap = {};
+  const cliSet = new Set();
+  DASHBOARD_DATA.cli_performance.forEach(r => cliSet.add(r.cli));
 
-  // ---- SPM ----
-  data.spm_rows?.forEach(r => {
-    const cli = r.cli;
-    if (!cli) return;
-
-    if (!cliMap[cli]) {
-      cliMap[cli] = { analysed: 0, issues: 0 };
-    }
-    cliMap[cli].analysed++;
-    if (r.issue) cliMap[cli].issues++;
+  cliSet.forEach(cli => {
+    const opt = document.createElement("option");
+    opt.value = cli;
+    opt.textContent = cli;
+    sel.appendChild(opt);
   });
 
-  // ---- CVVRS ----
-  data.cvvrs_rows?.forEach(r => {
-    const cli = r.cli;
-    if (!cli) return;
-
-    if (!cliMap[cli]) {
-      cliMap[cli] = { analysed: 0, issues: 0 };
-    }
-    cliMap[cli].analysed++;
-    if (r.issue) cliMap[cli].issues++;
+  sel.addEventListener("change", () => {
+    renderCLIChart(sel.value);
   });
 
-  populateSelect("cliSelect", Object.keys(cliMap));
-
-  document.getElementById("cliSelect").onchange = e => {
-    drawCLIChart(cliMap, e.target.value);
-  };
-
-  // default
-  if (Object.keys(cliMap).length > 0) {
-    drawCLIChart(cliMap, Object.keys(cliMap)[0]);
+  // default first CLI
+  if (sel.options.length > 0) {
+    renderCLIChart(sel.options[0].value);
   }
+}
+
+function renderCLIChart(cliName) {
+  const rows = DASHBOARD_DATA.cli_performance.filter(
+    r => r.cli === cliName
+  );
+
+  const labels = rows.map(r => r.system);
+  const totals = rows.map(r => r.total);
+  const issues = rows.map(r => r.issues);
+
+  if (cliChart) cliChart.destroy();
+
+  cliChart = new Chart(
+    document.getElementById("cliChart"),
+    {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Total Analyses",
+            data: totals
+          },
+          {
+            label: "Irregularities",
+            data: issues
+          }
+        ]
+      },
+      options: {
+        responsive: true
+      }
+    }
+  );
 }
 
 /* ===============================
    LP PERFORMANCE
    Source: spm + cvvrs + teloc
+   (Continuous monitoring)
 ================================ */
-function buildLPSection(data) {
+function initLPSelector() {
+  const sel = document.getElementById("lpSelect");
+  sel.innerHTML = "";
 
-  const lpMap = {};
+  const lpSet = new Set();
+  DASHBOARD_DATA.lp_performance.forEach(r => lpSet.add(r.lp));
 
-  function addLP(lp, hasIssue) {
-    if (!lp) return;
-    if (!lpMap[lp]) {
-      lpMap[lp] = { total: 0, clean: 0 };
-    }
-    lpMap[lp].total++;
-    if (!hasIssue) lpMap[lp].clean++;
-  }
-
-  data.spm_rows?.forEach(r => addLP(r.lp, r.issue));
-  data.cvvrs_rows?.forEach(r => addLP(r.lp, r.issue));
-  data.teloc_rows?.forEach(r => addLP(r.lp, r.issue));
-
-  populateSelect("lpSelect", Object.keys(lpMap));
-
-  document.getElementById("lpSelect").onchange = e => {
-    drawLPChart(lpMap, e.target.value);
-  };
-
-  if (Object.keys(lpMap).length > 0) {
-    drawLPChart(lpMap, Object.keys(lpMap)[0]);
-  }
-}
-
-/* ===============================
-   CHARTS
-================================ */
-function drawCLIChart(map, cli) {
-  const ctx = document.getElementById("cliChart");
-  if (!ctx) return;
-
-  const d = map[cli];
-  if (!d) return;
-
-  if (cliChart) cliChart.destroy();
-
-  cliChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: ["Analysed", "Issues Found"],
-      datasets: [{
-        data: [d.analysed, d.issues],
-        backgroundColor: ["#0b5ed7", "#dc3545"]
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } }
-    }
+  lpSet.forEach(lp => {
+    const opt = document.createElement("option");
+    opt.value = lp;
+    opt.textContent = lp;
+    sel.appendChild(opt);
   });
+
+  sel.addEventListener("change", () => {
+    renderLPChart(sel.value);
+  });
+
+  if (sel.options.length > 0) {
+    renderLPChart(sel.options[0].value);
+  }
 }
 
-function drawLPChart(map, lp) {
-  const ctx = document.getElementById("lpChart");
-  if (!ctx) return;
+function renderLPChart(lpName) {
+  const rows = DASHBOARD_DATA.lp_performance.filter(
+    r => r.lp === lpName
+  );
 
-  const d = map[lp];
-  if (!d) return;
+  const labels = rows.map(r => r.metric);
+  const values = rows.map(r => r.value);
 
   if (lpChart) lpChart.destroy();
 
-  lpChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: ["Total Duties", "Clean Duties"],
-      datasets: [{
-        data: [d.total, d.clean],
-        backgroundColor: ["#6c757d", "#198754"]
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { display: false } }
+  lpChart = new Chart(
+    document.getElementById("lpChart"),
+    {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "LP Performance",
+            data: values
+          }
+        ]
+      },
+      options: {
+        responsive: true
+      }
     }
-  });
+  );
 }
-
-/* ===============================
-   UTIL
-================================ */
-function populateSelect(id, list) {
-  const sel = document.getElementById(id);
-  if (!sel) return;
-
-  sel.innerHTML = "";
-  list.forEach(v => {
-    const opt = document.createElement("option");
-    opt.value = v;
-    opt.textContent = v;
-    sel.appendChild(opt);
-  });
-}
-
