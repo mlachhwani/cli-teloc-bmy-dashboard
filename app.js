@@ -1,82 +1,65 @@
-/****************************************************
- * R DIVISION – TELOC EYE
- * Frontend App Logic (FINAL – STABLE)
- ****************************************************/
+/* ===============================
+   R DIVISION – TELOC EYE
+   Frontend Controller (FINAL)
+   =============================== */
 
 let DASHBOARD_DATA = null;
 let cliChart = null;
 let lpChart = null;
 
-/* ===============================
-   INIT
-================================ */
-document.addEventListener("DOMContentLoaded", () => {
-  loadDashboard();
-});
+/* ========= LOAD DASHBOARD ========= */
+document.addEventListener("DOMContentLoaded", loadDashboard);
 
-/* ===============================
-   LOAD DASHBOARD JSON
-================================ */
 async function loadDashboard() {
   try {
     const res = await fetch(API_URL);
-    if (!res.ok) throw new Error("API response not OK");
+    if (!res.ok) throw new Error("API failed");
 
     DASHBOARD_DATA = await res.json();
 
+    console.log("API JSON:", DASHBOARD_DATA);
+
     renderSnapshotDate();
     renderKPIs();
-    initCLISelector();
-    initLPSelector();
+    populateCLISelector();
+    populateLPSelector();
 
   } catch (err) {
-    console.error(err);
     alert("Failed to load dashboard data");
+    console.error(err);
   }
 }
 
-/* ===============================
-   SNAPSHOT DATE
-================================ */
+/* ========= SNAPSHOT DATE ========= */
 function renderSnapshotDate() {
   const el = document.getElementById("snapshotDate");
-  if (el && DASHBOARD_DATA.snapshot_date) {
-    el.textContent = DASHBOARD_DATA.snapshot_date;
-  }
+  el.textContent = DASHBOARD_DATA.snapshot_date || "–";
 }
 
-/* ===============================
-   KPI CARDS
-================================ */
+/* ========= KPI CARDS ========= */
 function renderKPIs() {
   document.getElementById("spmCount").textContent =
-    DASHBOARD_DATA.kpi.spm ?? "–";
+    DASHBOARD_DATA.kpi.spm || 0;
 
   document.getElementById("cvvrsCount").textContent =
-    DASHBOARD_DATA.kpi.cvvrs ?? "–";
+    DASHBOARD_DATA.kpi.cvvrs || 0;
 
   document.getElementById("telocCount").textContent =
-    DASHBOARD_DATA.kpi.teloc ?? "–";
+    DASHBOARD_DATA.kpi.teloc || 0;
 
   document.getElementById("bulkCount").textContent =
-    DASHBOARD_DATA.kpi.bulk ?? "–";
+    DASHBOARD_DATA.kpi.bulk || 0;
 }
 
-/* ===============================
-   CLI PERFORMANCE
-   Source: spm.csv + cvvrs.csv
-================================ */
-function initCLISelector() {
+/* ========= CLI SELECTOR ========= */
+function populateCLISelector() {
   const sel = document.getElementById("cliSelect");
   sel.innerHTML = "";
 
-  const cliSet = new Set();
-  DASHBOARD_DATA.cli_performance.forEach(r => cliSet.add(r.cli));
-
-  cliSet.forEach(cli => {
+  DASHBOARD_DATA.cli_performance.forEach(cli => {
     const opt = document.createElement("option");
-    opt.value = cli;
-    opt.textContent = cli;
+    opt.value = cli.cli;
+    opt.textContent = cli.cli;
     sel.appendChild(opt);
   });
 
@@ -84,63 +67,18 @@ function initCLISelector() {
     renderCLIChart(sel.value);
   });
 
-  // default first CLI
-  if (sel.options.length > 0) {
-    renderCLIChart(sel.options[0].value);
-  }
+  if (sel.value) renderCLIChart(sel.value);
 }
 
-function renderCLIChart(cliName) {
-  const rows = DASHBOARD_DATA.cli_performance.filter(
-    r => r.cli === cliName
-  );
-
-  const labels = rows.map(r => r.system);
-  const totals = rows.map(r => r.total);
-  const issues = rows.map(r => r.issues);
-
-  if (cliChart) cliChart.destroy();
-
-  cliChart = new Chart(
-    document.getElementById("cliChart"),
-    {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [
-          {
-            label: "Total Analyses",
-            data: totals
-          },
-          {
-            label: "Irregularities",
-            data: issues
-          }
-        ]
-      },
-      options: {
-        responsive: true
-      }
-    }
-  );
-}
-
-/* ===============================
-   LP PERFORMANCE
-   Source: spm + cvvrs + teloc
-   (Continuous monitoring)
-================================ */
-function initLPSelector() {
+/* ========= LP SELECTOR ========= */
+function populateLPSelector() {
   const sel = document.getElementById("lpSelect");
   sel.innerHTML = "";
 
-  const lpSet = new Set();
-  DASHBOARD_DATA.lp_performance.forEach(r => lpSet.add(r.lp));
-
-  lpSet.forEach(lp => {
+  DASHBOARD_DATA.lp_performance.forEach(lp => {
     const opt = document.createElement("option");
-    opt.value = lp;
-    opt.textContent = lp;
+    opt.value = lp.lp;
+    opt.textContent = lp.lp;
     sel.appendChild(opt);
   });
 
@@ -148,37 +86,79 @@ function initLPSelector() {
     renderLPChart(sel.value);
   });
 
-  if (sel.options.length > 0) {
-    renderLPChart(sel.options[0].value);
-  }
+  if (sel.value) renderLPChart(sel.value);
 }
 
-function renderLPChart(lpName) {
-  const rows = DASHBOARD_DATA.lp_performance.filter(
-    r => r.lp === lpName
-  );
+/* ========= CLI BAR CHART ========= */
+function renderCLIChart(cliName) {
+  const ctx = document.getElementById("cliChart").getContext("2d");
 
-  const labels = rows.map(r => r.metric);
-  const values = rows.map(r => r.value);
+  const rows = DASHBOARD_DATA.cli_performance
+    .filter(r => r.cli === cliName);
+
+  const labels = rows.map(r => r.system);
+  const issues = rows.map(r => r.issues);
+  const total = rows.map(r => r.total);
+
+  if (cliChart) cliChart.destroy();
+
+  cliChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Issues",
+          data: issues
+        },
+        {
+          label: "Total Checks",
+          data: total
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "top" }
+      }
+    }
+  });
+}
+
+/* ========= LP BAR CHART ========= */
+function renderLPChart(lpName) {
+  const ctx = document.getElementById("lpChart").getContext("2d");
+
+  const rows = DASHBOARD_DATA.lp_performance
+    .filter(r => r.lp === lpName);
+
+  const labels = rows.map(r => r.system);
+  const clean = rows.map(r => r.clean);
+  const total = rows.map(r => r.total);
 
   if (lpChart) lpChart.destroy();
 
-  lpChart = new Chart(
-    document.getElementById("lpChart"),
-    {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [
-          {
-            label: "LP Performance",
-            data: values
-          }
-        ]
-      },
-      options: {
-        responsive: true
+  lpChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Clean Runs",
+          data: clean
+        },
+        {
+          label: "Total Runs",
+          data: total
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "top" }
       }
     }
-  );
+  });
 }
