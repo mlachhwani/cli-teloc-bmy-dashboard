@@ -3,17 +3,17 @@
 <head>
   <title>SECR REPORT</title>
   <style>
-    body { font-family: sans-serif; background: #f8fafc; padding: 20px; }
-    .header { background: #003399; color: white; padding: 15px; display: flex; justify-content: space-between; border-radius: 8px; position: sticky; top: 0; }
-    table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; }
-    th { background: #f1f5f9; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; position: sticky; top: 55px; font-size: 0.8rem; }
-    td { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+    body { font-family: sans-serif; padding: 20px; background: #f8fafc; }
+    .header { background: #003399; color: white; padding: 15px; display: flex; justify-content: space-between; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; background: white; margin-top: 15px; }
+    th { background: #f1f5f9; padding: 10px; text-align: left; border-bottom: 2px solid #ddd; font-size: 0.8rem; position: sticky; top: 0; }
+    td { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.8rem; }
   </style>
 </head>
 <body>
   <div class="header">
-    <h3 id="rTitle">Report View</h3>
-    <input type="text" id="f" placeholder="Filter records..." onkeyup="filter()" style="padding:8px; border-radius:4px; border:none;">
+    <h3 id="rTitle">Report</h3>
+    <input type="text" id="f" placeholder="Quick Filter..." onkeyup="filter()" style="padding:8px; border-radius:4px; border:none; width:200px;">
   </div>
   <div id="content"></div>
   <script>
@@ -29,7 +29,7 @@
       h += '</tr></thead><tbody id="tb">';
       data.slice(1).forEach(r => { h += '<tr>'; r.forEach(c => h += `<td>${c}</td>`); h += '</tr>'; });
       document.getElementById('content').innerHTML = h + '</tbody></table>';
-      document.getElementById('rTitle').innerText = `${p.get('type')} Analysis`;
+      document.getElementById('rTitle').innerText = p.get('type') + " Analysis";
     }
     function filter() {
       let v = document.getElementById('f').value.toLowerCase();
