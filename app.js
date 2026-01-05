@@ -1,149 +1,80 @@
-console.log("APP.JS LOADED");
+/* ===============================
+   APP.JS - FINAL SYNCED VERSION
+   =============================== */
 
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM READY");
   loadDashboard();
 });
 
-/* ===============================
-   MAIN DASHBOARD LOADER
-   =============================== */
 async function loadDashboard() {
   try {
-    if (!window.API_URL) {
-      alert("API_URL not found in config.js");
-      return;
-    }
+    if (typeof API_URL === 'undefined') throw new Error("API_URL Missing");
 
     const res = await fetch(API_URL);
     const data = await res.json();
+    
+    // 1. Snapshot
+    const snap = data.current_snapshot || {};
+    document.getElementById("snapshotDate").innerText = new Date(data.generated_at).toLocaleString();
+    document.getElementById("spmCount").innerText = snap.spm_rows || 0;
+    document.getElementById("cvvrsCount").innerText = snap.cvvrs_rows || 0;
+    document.getElementById("telocCount").innerText = snap.teloc_rows || 0;
+    document.getElementById("bulkCount").innerText = snap.bulk_rows || 0;
 
-    console.log("API DATA RECEIVED", data);
-
-    renderSnapshot(data);
-    renderCLI(data);
-    renderLP(data);
+    // 2. CLI Chart
+    setupDropdown("cliSelect", data.cli_current_month, drawCLIChart);
+    // 3. LP Chart
+    setupDropdown("lpSelect", data.lp_health, drawLPChart);
 
   } catch (err) {
-    console.error("FAILED TO LOAD DASHBOARD", err);
-    alert("FAILED TO LOAD");
+    console.error(err);
+    alert("Dashboard Load Failed: " + err.message);
   }
 }
 
-/* ===============================
-   SNAPSHOT KPI
-   =============================== */
-function renderSnapshot(data) {
-  document.getElementById("snapshotDate").innerText =
-    data.generated_at ? new Date(data.generated_at).toLocaleString() : "NA";
-
-  document.getElementById("spmCount").innerText =
-    data.current_snapshot?.spm_rows ?? "–";
-
-  document.getElementById("cvvrsCount").innerText =
-    data.current_snapshot?.cvvrs_rows ?? "–";
-
-  document.getElementById("telocCount").innerText =
-    data.current_snapshot?.teloc_rows ?? "–";
-
-  document.getElementById("bulkCount").innerText =
-    data.current_snapshot?.bulk_rows ?? "–";
-}
-
-/* ===============================
-   CLI PERFORMANCE
-   =============================== */
-function renderCLI(data) {
-  const cliSelect = document.getElementById("cliSelect");
-  cliSelect.innerHTML = "";
-
-  const cliData = data.cli_current_month || {};
-  const clis = Object.keys(cliData);
-
-  if (clis.length === 0) {
-    cliSelect.innerHTML = "<option>No CLI data</option>";
+function setupDropdown(id, dataObj, drawFunc) {
+  const select = document.getElementById(id);
+  const keys = Object.keys(dataObj || {});
+  if (keys.length === 0) {
+    select.innerHTML = "<option>No Data</option>";
     return;
   }
-
-  clis.forEach(cli => {
-    const opt = document.createElement("option");
-    opt.value = cli;
-    opt.textContent = cli;
-    cliSelect.appendChild(opt);
-  });
-
-  cliSelect.addEventListener("change", () => {
-    drawCLIChart(cliData[cliSelect.value]);
-  });
-
-  drawCLIChart(cliData[clis[0]]);
+  select.innerHTML = keys.map(k => `<option value="${k}">${k}</option>`).join('');
+  select.onchange = () => drawFunc(dataObj[select.value]);
+  drawFunc(dataObj[keys[0]]);
 }
 
-let cliChart;
+let cliChart, lpChart;
+
 function drawCLIChart(obj) {
-  const ctx = document.getElementById("cliChart");
-  if (!obj) return;
-
+  const ctx = document.getElementById("cliChart").getContext('2d');
   if (cliChart) cliChart.destroy();
-
   cliChart = new Chart(ctx, {
-    type: "bar",
+    type: 'bar',
     data: {
-      labels: ["Analyses", "Issues"],
+      labels: ["Total Analyses", "Issues Found"],
       datasets: [{
-        label: "CLI Performance",
+        label: "Count",
         data: [obj.analyses, obj.issues],
-        backgroundColor: ["#2e7d32", "#c62828"]
+        backgroundColor: ["#0b3c5d", "#c62828"]
       }]
-    }
+    },
+    options: { responsive: true, maintainAspectRatio: false }
   });
 }
 
-/* ===============================
-   LP PERFORMANCE
-   =============================== */
-function renderLP(data) {
-  const lpSelect = document.getElementById("lpSelect");
-  lpSelect.innerHTML = "";
-
-  const lpData = data.lp_health || {};
-  const lps = Object.keys(lpData);
-
-  if (lps.length === 0) {
-    lpSelect.innerHTML = "<option>No LP data</option>";
-    return;
-  }
-
-  lps.forEach(lp => {
-    const opt = document.createElement("option");
-    opt.value = lp;
-    opt.textContent = lp;
-    lpSelect.appendChild(opt);
-  });
-
-  lpSelect.addEventListener("change", () => {
-    drawLPChart(lpData[lpSelect.value]);
-  });
-
-  drawLPChart(lpData[lps[0]]);
-}
-
-let lpChart;
 function drawLPChart(obj) {
-  const ctx = document.getElementById("lpChart");
-  if (!obj) return;
-
+  const ctx = document.getElementById("lpChart").getContext('2d');
   if (lpChart) lpChart.destroy();
-
   lpChart = new Chart(ctx, {
-    type: "bar",
+    type: 'doughnut',
     data: {
-      labels: ["Involved", "Clean"],
+      labels: ["Issues", "Clean Status"],
       datasets: [{
-        label: "LP Health",
         data: [obj.involved, obj.clean ? 1 : 0],
         backgroundColor: ["#c62828", "#2e7d32"]
       }]
-    }
+    },
+    options: { responsive: true, maintainAspectRatio: false }
   });
 }
