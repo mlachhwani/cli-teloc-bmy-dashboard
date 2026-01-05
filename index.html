@@ -1,72 +1,69 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>SECR RAILWAY DASHBOARD</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root { --rail-blue: #003399; --rail-red: #ff0000; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; }
-        .master-header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px 25px; border-bottom: 4px solid var(--rail-red); border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
-        .card { background: white; padding: 20px; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 5px solid var(--rail-blue); }
-        .stat-val { font-size: 2.2rem; font-weight: 800; color: #222; }
-        .vio-label { color: var(--rail-red); font-weight: bold; margin-bottom: 15px; }
-        .btn-row { display: flex; gap: 8px; }
-        .btn { flex: 1; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
-        .chart-section { background: white; padding: 20px; border-radius: 12px; height: 400px; }
-    </style>
+  <meta charset="UTF-8">
+  <title>SECR RAILWAY DASHBOARD</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root { --rail-blue: #003399; --rail-red: #ff0000; --bg: #f4f7f6; }
+    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; }
+    .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-bottom: 4px solid var(--rail-red); border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+    .card { background: white; padding: 20px; border-radius: 12px; text-align: center; border-top: 5px solid var(--rail-blue); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .stat-val { font-size: 2.2rem; font-weight: bold; color: #333; }
+    .vio-label { color: var(--rail-red); font-weight: bold; margin: 10px 0; }
+    .btn-row { display: flex; gap: 5px; }
+    .btn { flex: 1; padding: 8px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+  </style>
 </head>
 <body>
-    <header class="master-header">
-        <div><h2 style="margin:0; color:var(--rail-blue);">SOUTH EAST CENTRAL RAILWAY</h2><small>RAIPUR DIVISION - ELECTRICAL (OP)</small></div>
-        <div style="display:flex; gap:10px;">
-            <input type="text" id="lpS" placeholder="LP ID..." style="padding:8px; border-radius:5px; border:1px solid #ccc;">
-            <input type="date" id="datePicker" style="padding:8px; border-radius:5px; border:1px solid #ccc;" onchange="loadData()">
-        </div>
-    </header>
+  <div class="header">
+    <div><h2 style="margin:0; color:var(--rail-blue);">SECR RAIPUR DIVISION</h2><small>ELECTRICAL (OP) DASHBOARD</small></div>
+    <input type="date" id="datePicker" style="padding:8px; border-radius:4px; border:1px solid #ccc;" onchange="loadData()">
+  </div>
 
-    <div class="kpi-grid">
-        <div class="card"><h3>SPM</h3><div class="stat-val" id="spm_t">0</div><div class="vio-label">Violations: <span id="spm_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('SPM',false)">REP</button><button class="btn" style="background:red" onclick="go('SPM',true)">VIO</button></div></div>
-        <div class="card"><h3>CVVRS</h3><div class="stat-val" id="cvvrs_t">0</div><div class="vio-label">Violations: <span id="cvvrs_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('CVVRS',false)">REP</button><button class="btn" style="background:red" onclick="go('CVVRS',true)">VIO</button></div></div>
-        <div class="card"><h3>TELOC</h3><div class="stat-val" id="teloc_t">0</div><div class="vio-label">Violations: <span id="teloc_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('TELOC',false)">REP</button><button class="btn" style="background:red" onclick="go('TELOC',true)">VIO</button></div></div>
-        <div class="card"><h3>BULK</h3><div class="stat-val" id="bulk_t">0</div><div class="vio-label">Violations: <span id="bulk_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('BULK',false)">REP</button><button class="btn" style="background:red" onclick="go('BULK',true)">VIO</button></div></div>
-    </div>
-    <div class="chart-section"><canvas id="violationChart"></canvas></div>
+  <div class="grid">
+    <div class="card"><h3>SPM</h3><div class="stat-val" id="spm_t">0</div><div class="vio-label">Violations: <span id="spm_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('SPM',false)">REP</button><button class="btn" style="background:red" onclick="go('SPM',true)">VIO</button></div></div>
+    <div class="card"><h3>CVVRS</h3><div class="stat-val" id="cvvrs_t">0</div><div class="vio-label">Violations: <span id="cvvrs_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('CVVRS',false)">REP</button><button class="btn" style="background:red" onclick="go('CVVRS',true)">VIO</button></div></div>
+    <div class="card"><h3>TELOC</h3><div class="stat-val" id="teloc_t">0</div><div class="vio-label">Violations: <span id="teloc_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('TELOC',false)">REP</button><button class="btn" style="background:red" onclick="go('TELOC',true)">VIO</button></div></div>
+    <div class="card"><h3>Bulk Analysis</h3><div class="stat-val" id="bulk_t">0</div><div class="vio-label">Violations: <span id="bulk_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('BULK',false)">REP</button><button class="btn" style="background:red" onclick="go('BULK',true)">VIO</button></div></div>
+  </div>
 
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbx-Z6VD-kyM4uxmlOfGsIn2_aa6ZH9nWoLxpoedbhjR_Z7df_heEtMEzHKTQW-mpVEhHQ/exec"; 
-        let myChart;
+  <div style="background:white; padding:20px; border-radius:12px; height:350px;"><canvas id="mainChart"></canvas></div>
 
-        window.onload = () => {
-            document.getElementById('datePicker').value = "2025-12-22"; // Test date
-            loadData();
-        };
+  <script>
+    const API = "https://script.google.com/macros/s/AKfycbyR474nMqsFwqsafSsw_GnkiTYqD0EV6t8TqraasOu4YWNXPcUEZcvImMj_7Yu54fglZQ/exec"; 
+    let chart;
 
-        async function loadData() {
-            const date = document.getElementById('datePicker').value;
-            const res = await fetch(`${API_URL}?date=${date}`);
-            const data = await res.json();
+    async function loadData() {
+      const date = document.getElementById('datePicker').value;
+      const res = await fetch(`${API}?date=${date}`);
+      const d = await res.json();
+      
+      document.getElementById('spm_t').innerText = d.snapshot.spm_total || 0;
+      document.getElementById('spm_v').innerText = d.snapshot.spm_vio || 0;
+      document.getElementById('cvvrs_t').innerText = d.snapshot.cvvrs_total || 0;
+      document.getElementById('cvvrs_v').innerText = d.snapshot.cvvrs_vio || 0;
+      document.getElementById('teloc_t').innerText = d.snapshot.teloc_total || 0;
+      document.getElementById('teloc_v').innerText = d.snapshot.teloc_vio || 0;
+      document.getElementById('bulk_t').innerText = d.snapshot.bulk_total || 0;
+      document.getElementById('bulk_v').innerText = d.snapshot.bulk_vio || 0;
 
-            document.getElementById('spm_t').innerText = data.snapshot.spm_total || 0;
-            document.getElementById('spm_v').innerText = data.snapshot.spm_vio || 0;
-            document.getElementById('cvvrs_t').innerText = data.snapshot.cvvrs_total || 0;
-            document.getElementById('cvvrs_v').innerText = data.snapshot.cvvrs_vio || 0;
-            document.getElementById('teloc_t').innerText = data.snapshot.teloc_total || 0;
-            document.getElementById('teloc_v').innerText = data.snapshot.teloc_vio || 0;
-            document.getElementById('bulk_t').innerText = data.snapshot.bulk_total || 0;
-            document.getElementById('bulk_v').innerText = data.snapshot.bulk_vio || 0;
+      if(chart) chart.destroy();
+      chart = new Chart(document.getElementById('mainChart'), {
+        type: 'line',
+        data: {
+          labels: d.trends.map(x => x.day),
+          datasets: [{ label: 'Violations', data: d.trends.map(x => x.vio), borderColor: 'red', fill: true, tension: 0.3 }]
+        },
+        options: { maintainAspectRatio: false }
+      });
+    }
 
-            if (myChart) myChart.destroy();
-            myChart = new Chart(document.getElementById('violationChart'), {
-                type: 'line',
-                data: {
-                    labels: data.trends.map(i => i.day),
-                    datasets: [{ label: 'Violations', data: data.trends.map(i => i.vio), borderColor: 'red', tension: 0.3 }]
-                }
-            });
-        }
-        function go(t,v) { window.open(`report.html?type=${t}&date=${document.getElementById('datePicker').value}&onlyViolations=${v}`, '_blank'); }
-    </script>
+    function go(t, v) { window.open(`report.html?type=${t}&date=${document.getElementById('datePicker').value}&onlyViolations=${v}`, '_blank'); }
+    
+    document.getElementById('datePicker').value = "2025-12-22"; // Forced test date
+    window.onload = loadData;
+  </script>
 </body>
 </html>
