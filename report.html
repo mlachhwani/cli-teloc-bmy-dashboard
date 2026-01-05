@@ -1,1 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Personnel Detailed Report</title>
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 40px; color: #1e293b; }
+    .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+    .header { border-bottom: 3px solid #38bdf8; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+    h1 { margin: 0; color: #0f172a; text-transform: uppercase; letter-spacing: 1px; }
+    .badge { background: #38bdf8; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th { background: #f8fafc; text-align: left; padding: 15px; border-bottom: 2px solid #e2e8f0; color: #64748b; font-size: 0.8rem; text-transform: uppercase; }
+    td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; }
+    tr:hover { background: #f8fafc; }
+    .status-risk { color: #ef4444; font-weight: bold; background: #fee2e2; padding: 4px 8px; border-radius: 4px; }
+    .no-data { text-align: center; padding: 50px; color: #94a3b8; }
+    @media print { .no-print { display: none; } }
+  </style>
+</head>
+<body>
 
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1 id="pName">Loading...</h1>
+        <p id="pType" style="margin:5px 0 0 0; color:#64748b;">Personnel Category</p>
+      </div>
+      <button onclick="window.print()" class="no-print" style="padding: 10px 20px; cursor:pointer;">Print Report</button>
+    </div>
+
+    <div id="loadingMsg" class="no-data">Searching history in database...</div>
+
+    <table id="reportTable" style="display:none;">
+      <thead>
+        <tr>
+          <th>Analysis Date</th>
+          <th>Work Date</th>
+          <th>Train/Loco</th>
+          <th>From-To</th>
+          <th>Irregularity / Violation</th>
+        </tr>
+      </thead>
+      <tbody id="reportContent"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get('name');
+    const type = params.get('type');
+    const API = "PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE"; 
+
+    document.getElementById('pName').innerText = name;
+    document.getElementById('pType').innerText = "Detailed Monitoring Report - " + type;
+
+    async function fetchReport() {
+      try {
+        // Backend se is specific name ka data mangna
+        const res = await fetch(`${API}?getReport=true&name=${encodeURIComponent(name)}&type=${type}`);
+        const data = await res.json();
+        
+        document.getElementById('loadingMsg').style.display = 'none';
+        document.getElementById('reportTable').style.display = 'table';
+        
+        const content = document.getElementById('reportContent');
+        if (data.length === 0) {
+          content.innerHTML = "<tr><td colspan='5' class='no-data'>No history found for this month.</td></tr>";
+          return;
+        }
+
+        content.innerHTML = data.map(row => `
+          <tr>
+            <td>${row.analysis_date}</td>
+            <td>${row.work_date}</td>
+            <td>${row.train_loco}</td>
+            <td>${row.section}</td>
+            <td><span class="${row.status === 'RISK' ? 'status-risk' : ''}">${row.remark}</span></td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        document.getElementById('loadingMsg').innerText = "Error loading data. Please check connection.";
+      }
+    }
+
+    if(name) fetchReport();
+  </script>
+</body>
+</html>
