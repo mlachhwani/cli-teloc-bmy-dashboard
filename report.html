@@ -3,37 +3,37 @@
 <head>
   <title>SECR REPORT VIEW</title>
   <style>
-    body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    th { background: #003399; color: white; padding: 12px; text-align: left; font-size: 0.9rem; }
-    td { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
-    tr:hover { background: #f1f5f9; }
-    .header { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    th { background: #003399; color: white; padding: 12px; text-align: left; font-size: 0.85rem; white-space: nowrap; }
+    td { padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 0.8rem; }
+    tr:nth-child(even) { background: #f8fafc; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   </style>
 </head>
 <body>
   <div class="header">
-    <h2 id="title">Loading Report...</h2>
-    <button onclick="window.close()" style="padding:8px 15px; cursor:pointer;">Close Window</button>
+    <h2 id="rTitle">Loading Report...</h2>
+    <button onclick="window.close()" style="padding:10px 20px; cursor:pointer; background:#64748b; color:white; border:none; border-radius:5px; font-weight:bold;">CLOSE</button>
   </div>
   <div id="tableContent"></div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbwlRxPC2jtkBfmRfVJB9CNDYznP61Id9vNYVyXfihEkZF_Qykdlo3UHu5fzJWlqeNFV_g/exec";
-    const params = new URLSearchParams(window.location.search);
+    const API = "https://script.google.com/macros/s/AKfycbxMJFPR84kUmTeNV_iOswKZq-oL5pGn44tE4fgRWSkTOAJUBzhFB4d2JyGlBgyQXSZuxA/exec";
+    const p = new URLSearchParams(window.location.search);
 
     async function fetchReport() {
-      document.getElementById('title').innerText = `${params.get('type')} Report - ${params.get('date') || 'Monthly'}`;
-      const url = `${API}?action=fullTable&type=${params.get('type')}&date=${params.get('date')}&onlyViolations=${params.get('onlyViolations')}`;
+      document.getElementById('rTitle').innerText = `${p.get('type')} Analysis - ${p.get('date') || 'Full Month'}`;
+      const url = `${API}?action=fullTable&type=${p.get('type')}&date=${p.get('date')}&onlyViolations=${p.get('onlyViolations')}`;
       const res = await fetch(url);
       const data = await res.json();
-      renderTable(data);
+      render(data);
     }
 
-    function renderTable(data) {
-      if (!data || data.length < 2) { document.getElementById('tableContent').innerHTML = "<h3>No Records Found</h3>"; return; }
+    function render(data) {
+      if (!data || data.length < 2) { document.getElementById('tableContent').innerHTML = "<h3>No Records Found for selected date.</h3>"; return; }
       let html = '<table><thead><tr>';
-      data[0].forEach(h => html += `<th>${h}</th>`);
+      data[0].forEach(col => html += `<th>${col}</th>`);
       html += '</tr></thead><tbody>';
       data.slice(1).forEach(row => {
         html += '<tr>';
