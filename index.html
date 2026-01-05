@@ -1,83 +1,283 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>SECR RAILWAY DASHBOARD</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    :root { --rail-blue: #003399; --rail-red: #ff0000; --bg: #f0f2f5; }
-    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
-    
-    /* Header with Search and Date in one line */
-    .master-header { 
-      display: flex; align-items: center; justify-content: space-between; 
-      background: white; padding: 10px 25px; border-bottom: 4px solid var(--rail-red); 
-      border-radius: 8px; margin-bottom: 15px; 
-    }
-    .header-controls { display: flex; gap: 10px; align-items: center; }
-    .search-input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 140px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECR RAILWAY DASHBOARD</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --rail-blue: #003399;
+            --rail-red: #ff0000;
+            --bg: #f4f7f6;
+            --white: #ffffff;
+        }
 
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 15px; }
-    .card { background: white; padding: 15px; border-radius: 12px; border-top: 5px solid var(--rail-blue); text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .stat-val { font-size: 1.6rem; font-weight: 800; margin: 5px 0; }
-    .btn-row { display: flex; gap: 5px; margin-top: 12px; }
-    .btn { flex: 1; padding: 8px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; font-size: 0.75rem; text-transform: uppercase; }
-    
-    /* Big Graph directly below cards */
-    .chart-box { background: white; padding: 20px; border-radius: 12px; height: 350px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-  </style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 15px;
+        }
+
+        /* Header Alignment: Title + Search + Date */
+        .master-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--white);
+            padding: 10px 25px;
+            border-bottom: 4px solid var(--rail-red);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .header-left h2 {
+            margin: 0;
+            color: var(--rail-blue);
+            font-size: 1.5rem;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .input-box {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+
+        .input-box:focus {
+            border-color: var(--rail-blue);
+        }
+
+        /* KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-top: 5px solid var(--rail-blue);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+        }
+
+        .card h3 {
+            margin: 0 0 10px 0;
+            color: #555;
+            font-size: 1.1rem;
+        }
+
+        .stat-val {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #222;
+            margin: 5px 0;
+        }
+
+        .vio-label {
+            color: var(--rail-red);
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .btn-rep { background-color: #0284c7; }
+        .btn-vio { background-color: var(--rail-red); }
+
+        /* Chart Area */
+        .chart-section {
+            background: var(--white);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            height: 400px;
+        }
+
+        @media (max-width: 1024px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .master-header { flex-direction: column; gap: 15px; text-align: center; }
+        }
+    </style>
 </head>
 <body>
-  <header class="master-header">
-    <div style="color:var(--rail-blue);">
-      <h2 style="margin:0;">SOUTH EAST CENTRAL RAILWAY</h2>
-      <small>RAIPUR DIVISION - ELECTRICAL (OP)</small>
+
+    <header class="master-header">
+        <div class="header-left">
+            <h2>SOUTH EAST CENTRAL RAILWAY</h2>
+            <small style="font-weight:bold; color:#666;">ELECTRICAL (OP) DEPARTMENT - RAIPUR</small>
+        </div>
+        <div class="header-controls">
+            <input type="text" id="lpSearch" class="input-box" placeholder="LP ID/Name Search..." onkeyup="if(event.key==='Enter') search('SPM')">
+            <input type="text" id="cliSearch" class="input-box" placeholder="CLI ID Search..." onkeyup="if(event.key==='Enter') search('CVVRS')">
+            <input type="date" id="datePicker" class="input-box" onchange="loadData()">
+        </div>
+    </header>
+
+    <div class="kpi-grid">
+        <div class="card">
+            <h3>SPM ANALYSIS</h3>
+            <div class="stat-val" id="spm_t">0</div>
+            <div class="vio-label">Violations: <span id="spm_v">0</span></div>
+            <div class="btn-row">
+                <button class="btn btn-rep" onclick="viewReport('SPM', false)">Report</button>
+                <button class="btn btn-vio" onclick="viewReport('SPM', true)">Violations</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>CVVRS ANALYSIS</h3>
+            <div class="stat-val" id="cvvrs_t">0</div>
+            <div class="vio-label">Violations: <span id="cvvrs_v">0</span></div>
+            <div class="btn-row">
+                <button class="btn btn-rep" onclick="viewReport('CVVRS', false)">Report</button>
+                <button class="btn btn-vio" onclick="viewReport('CVVRS', true)">Violations</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>TELOC DAILY</h3>
+            <div class="stat-val" id="teloc_t">0</div>
+            <div class="vio-label">Violations: <span id="teloc_v">0</span></div>
+            <div class="btn-row">
+                <button class="btn btn-rep" onclick="viewReport('TELOC', false)">Report</button>
+                <button class="btn btn-vio" onclick="viewReport('TELOC', true)">Violations</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>BULK ANALYSIS</h3>
+            <div class="stat-val" id="bulk_t">0</div>
+            <div class="vio-label">Violations Found: <span id="bulk_v">0</span></div>
+            <div class="btn-row">
+                <button class="btn btn-rep" onclick="viewReport('BULK', false)">Details</button>
+                <button class="btn btn-vio" onclick="viewReport('BULK', true)">Critical</button>
+            </div>
+        </div>
     </div>
-    <div class="header-controls">
-      <input type="text" id="lpS" class="search-input" placeholder="LP Search..." onkeyup="if(event.key==='Enter') search('SPM')">
-      <input type="text" id="cliS" class="search-input" placeholder="CLI Search..." onkeyup="if(event.key==='Enter') search('CVVRS')">
-      <input type="date" id="datePicker" onchange="loadData()" style="padding:7px; border-radius:4px; border:1px solid #ccc;">
+
+    <div class="chart-section">
+        <canvas id="violationChart"></canvas>
     </div>
-  </header>
 
-  <div class="kpi-grid">
-    <div class="card"><h4>SPM</h4><div class="stat-val" id="v1_t">0</div><div style="color:red">Vio: <span id="v1_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('SPM',false)">REP</button><button class="btn" style="background:red" onclick="go('SPM',true)">VIO</button></div></div>
-    <div class="card"><h4>CVVRS</h4><div class="stat-val" id="v2_t">0</div><div style="color:red">Vio: <span id="v2_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('CVVRS',false)">REP</button><button class="btn" style="background:red" onclick="go('CVVRS',true)">VIO</button></div></div>
-    <div class="card"><h4>TELOC</h4><div class="stat-val" id="v4_t">0</div><div style="color:red">Vio: <span id="v4_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('TELOC',false)">REP</button><button class="btn" style="background:red" onclick="go('TELOC',true)">VIO</button></div></div>
-    <div class="card"><h4>Bulk Analysis</h4><div class="stat-val" id="v3_t">0</div><div style="color:red">Vio: <span id="v3_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('BULK',false)">REP</button><button class="btn" style="background:red" onclick="go('BULK',true)">VIO</button></div></div>
-  </div>
+    <script>
+        // 1. REPLACE WITH YOUR DEPLOYED WEB APP URL
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzc7lf1wuzewLvL_iFYqdJqsIjd27YdeK56z0oSV6urKz6-K6m0p-YPBNTIW0lxB-l7Gw/exec"; 
+        let myChart;
 
-  <div class="chart-box"><canvas id="mainChart"></canvas></div>
+        // Auto-set Date Picker to today or a specific default
+        window.onload = () => {
+            const today = new Date();
+            // Optional: Hardcode for testing like '2025-12-22'
+            document.getElementById('datePicker').value = today.toISOString().split('T')[0];
+            loadData();
+        };
 
-  <script>
-    const API = "https://script.google.com/macros/s/AKfycbyJphhygdhOg0Su6DCquk8vgczMRMmzJff25AD4SPQ9MP6Q4UGqQwMoj5JYUAnebnJ0bA/exec";
-    let chart;
+        async function loadData() {
+            const selectedDate = document.getElementById('datePicker').value;
+            if (!selectedDate) return;
 
-    async function loadData() {
-      try {
-        const res = await fetch(`${API}?date=${document.getElementById('datePicker').value}`);
-        const d = await res.json();
-        const map = {v1_t:'spm_total', v1_v:'spm_vio', v2_t:'cvvrs_total', v2_v:'cvvrs_vio', v3_t:'bulk_total', v3_v:'bulk_vio', v4_t:'teloc_total', v4_v:'teloc_vio'};
-        for(let k in map) document.getElementById(k).innerText = d.snapshot[map[k]] || 0;
+            try {
+                const response = await fetch(`${WEB_APP_URL}?date=${selectedDate}`);
+                const data = await response.json();
 
-        if(chart) chart.destroy();
-        chart = new Chart(document.getElementById('mainChart'), {
-          type: 'line',
-          data: {
-            labels: d.trends.map(x => x.day),
-            datasets: [{ label: 'Violations Trend', data: d.trends.map(x => x.vio), borderColor: 'red', fill: true, backgroundColor: 'rgba(255,0,0,0.05)', tension: 0.3 }]
-          },
-          options: { maintainAspectRatio: false }
-        });
-      } catch(e) { console.error("Data Load Error"); }
-    }
+                // Update Cards
+                document.getElementById('spm_t').innerText = data.snapshot.spm_total || 0;
+                document.getElementById('spm_v').innerText = data.snapshot.spm_vio || 0;
+                
+                document.getElementById('cvvrs_t').innerText = data.snapshot.cvvrs_total || 0;
+                document.getElementById('cvvrs_v').innerText = data.snapshot.cvvrs_vio || 0;
+                
+                document.getElementById('teloc_t').innerText = data.snapshot.teloc_total || 0;
+                document.getElementById('teloc_v').innerText = data.snapshot.teloc_vio || 0;
+                
+                document.getElementById('bulk_t').innerText = data.snapshot.bulk_total || 0; // Should be 1479
+                document.getElementById('bulk_v').innerText = data.snapshot.bulk_vio || 0;
 
-    function search(type) {
-      const q = (type === 'SPM') ? document.getElementById('lpS').value : document.getElementById('cliS').value;
-      window.open(`report.html?type=${type}&search=${q}`, '_blank');
-    }
-    function go(t, v) { window.open(`report.html?type=${t}&date=${document.getElementById('datePicker').value}&onlyViolations=${v}`, '_blank'); }
-    window.onload = loadData;
-  </script>
+                // Update Chart
+                updateChart(data.trends);
+
+            } catch (error) {
+                console.error("Error loading dashboard data:", error);
+            }
+        }
+
+        function updateChart(trends) {
+            const ctx = document.getElementById('violationChart').getContext('2d');
+            
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: trends.map(item => item.day),
+                    datasets: [{
+                        label: 'Daily Violations (Cumulative)',
+                        data: trends.map(item => item.vio),
+                        borderColor: '#ff0000',
+                        backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function search(type) {
+            const query = type === 'SPM' ? document.getElementById('lpSearch').value : document.getElementById('cliSearch').value;
+            if(!query) return alert("Please enter search term");
+            window.open(`report.html?type=${type}&search=${encodeURIComponent(query)}`, '_blank');
+        }
+
+        function viewReport(type, isViolationOnly) {
+            const date = document.getElementById('datePicker').value;
+            window.open(`report.html?type=${type}&date=${date}&onlyViolations=${isViolationOnly}`, '_blank');
+        }
+    </script>
 </body>
 </html>
