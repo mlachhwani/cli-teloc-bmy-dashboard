@@ -3,39 +3,61 @@
 <head>
   <title>Personnel Detailed Report</title>
   <style>
-    body { font-family: sans-serif; padding: 25px; background: #f8fafc; }
-    .box { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 900px; margin: auto; }
+    body { font-family: sans-serif; padding: 30px; background: #f8fafc; color: #1e293b; }
+    .box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 950px; margin: auto; }
+    .header { border-bottom: 2px solid #38bdf8; padding-bottom: 10px; margin-bottom: 20px; }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th { text-align: left; padding: 10px; background: #e2e8f0; }
-    td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
-    .header { border-bottom: 2px solid #38bdf8; padding-bottom: 10px; margin-bottom: 15px; }
+    th { text-align: left; padding: 12px; background: #f1f5f9; border-bottom: 2px solid #cbd5e1; }
+    td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+    tr:hover { background: #fafafa; }
   </style>
 </head>
 <body>
   <div class="box">
     <div class="header">
-      <h1 id="n" style="margin:0">Loading...</h1>
-      <p id="t" style="color:#64748b"></p>
+      <h1 id="userName" style="margin:0">Loading...</h1>
+      <p id="userType" style="color:#64748b; margin:5px 0 0 0;"></p>
     </div>
-    <table id="tbl">
-      <thead><tr><th>Analysis Date</th><th>Work Date</th><th>Loco</th><th>Section</th><th>Remark</th></tr></thead>
-      <tbody id="b"></tbody>
+    <table id="dataTable">
+      <thead>
+        <tr><th>Analysis Date</th><th>Work Date</th><th>Loco No</th><th>Section</th><th>Irregularity</th></tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="5" style="text-align:center">Fetching records...</td></tr>
+      </tbody>
     </table>
   </div>
-  <script>
-    const p = new URLSearchParams(window.location.search);
-    const API = "https://script.google.com/macros/s/AKfycbyKUnbldDGdlWi7rQBR5GFt7Pf069_2DLttW2-sBamW6eovaOJMiKUq-4mGWwSTnngb2A/exec"; 
-    document.getElementById('n').innerText = p.get('name');
-    document.getElementById('t').innerText = "Category: " + p.get('type');
 
-    async function load() {
-      const r = await fetch(`${API}?getReport=true&name=${encodeURIComponent(p.get('name'))}&type=${p.get('type')}`);
-      const data = await r.json();
-      document.getElementById('b').innerHTML = data.length ? data.map(row => `
-        <tr><td>${row.date}</td><td>${row.work}</td><td>${row.loco}</td><td>${row.section}</td><td>${row.remark}</td></tr>
-      `).join('') : '<tr><td colspan="5" style="text-align:center">No records found for this person.</td></tr>';
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbyFg5rUlnG706XsLIU9HaGV2mXxxREMBoo2bDE3GvQcLZLQM9Riv4V4GqE45MUHJdMNgA/exec"; 
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get('name');
+    const type = params.get('type');
+
+    document.getElementById('userName').innerText = name;
+    document.getElementById('userType').innerText = "Category: " + type + " | Monthly History";
+
+    async function loadReport() {
+      const res = await fetch(`${API_URL}?getReport=true&name=${encodeURIComponent(name)}&type=${type}`);
+      const data = await res.json();
+      
+      const body = document.getElementById('tableBody');
+      if (data.length === 0) {
+        body.innerHTML = '<tr><td colspan="5" style="text-align:center">No records found for this person this month.</td></tr>';
+        return;
+      }
+
+      body.innerHTML = data.map(row => `
+        <tr>
+          <td>${row.date}</td>
+          <td>${row.work}</td>
+          <td>${row.loco}</td>
+          <td>${row.section}</td>
+          <td>${row.remark}</td>
+        </tr>
+      `).join('');
     }
-    load();
+    loadReport();
   </script>
 </body>
 </html>
