@@ -2,158 +2,137 @@
 <html>
 <head>
   <style>
-    :root { --rail-blue: #003399; --rail-red: #d11212; --bg: #f4f7f9; }
+    :root { --rail-blue: #003399; --rail-red: #d11212; --bg: #f8fafc; }
     body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; }
     
     /* Animation */
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    .animate { animation: slideUp 0.6s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate { animation: fadeIn 0.5s ease forwards; }
 
-    /* Header Fix (Screenshot 863 Style) */
-    .master-header { display: flex; align-items: center; background: white; padding: 15px 40px; border-bottom: 5px solid var(--rail-red); height: 90px; margin-bottom: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    .logo-container { flex: 0 0 120px; }
-    .logo { height: 85px; width: auto; }
-    .title-container { flex: 1; text-align: center; }
-    .title-container h1 { font-size: 2.2rem; color: var(--rail-blue); margin: 0; font-weight: 900; letter-spacing: 1px; }
-    .title-container h2 { font-size: 1.3rem; color: #333; margin: 0; font-weight: 700; }
+    /* Header (Screenshot 863 Style) */
+    .master-header { display: flex; align-items: center; background: white; padding: 10px 30px; border-bottom: 5px solid var(--rail-red); height: 85px; margin-bottom: 20px; border-radius: 8px; }
+    .logo { height: 75px; width: auto; margin-right: 30px; }
+    .header-titles { flex: 1; text-align: center; }
+    .header-titles h1 { font-size: 2.1rem; color: var(--rail-blue); margin: 0; font-weight: 900; }
+    .header-titles h2 { font-size: 1.2rem; color: #444; margin: 0; font-weight: 700; }
 
     /* KPI Cards (Screenshot 864 Style) */
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
-    .card { background: white; padding: 15px; border-radius: 12px; border-top: 5px solid var(--rail-blue); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    .card h3 { font-size: 1.1rem; color: #1e293b; margin: 0 0 15px 0; font-weight: 800; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+    .card { background: white; padding: 15px; border-radius: 12px; border-top: 4px solid var(--rail-blue); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .card h3 { font-size: 1rem; color: #333; margin: 0 0 15px 0; font-weight: 800; border-bottom: 1px solid #eee; padding-bottom: 8px; }
     
-    .stat-display { display: flex; justify-content: space-around; align-items: center; margin-bottom: 15px; }
-    .stat-group { text-align: center; }
-    .stat-group label { font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: 700; }
-    .stat-group div { font-size: 1.8rem; font-weight: 800; color: #0f172a; }
+    .stats { display: flex; justify-content: space-around; margin-bottom: 15px; }
+    .stat-box { text-align: center; }
+    .stat-box label { font-size: 0.65rem; color: #888; text-transform: uppercase; font-weight: 700; }
+    .stat-box div { font-size: 1.6rem; font-weight: 800; color: #1e293b; }
 
-    /* Action Buttons */
-    .btn-row { display: flex; gap: 10px; }
-    .btn { flex: 1; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: 800; font-size: 0.75rem; transition: 0.3s; }
-    .btn-report { background: #0284c7; }
-    .btn-violation { background: #e11d48; }
-    .btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
+    .btn-row { display: flex; gap: 8px; }
+    .btn { flex: 1; border: none; padding: 8px; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; font-size: 0.7rem; }
+    .btn-b { background: #0284c7; } .btn-r { background: #e11d48; }
 
-    /* Graph Containers */
-    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .chart-box { background: white; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; height: 220px; }
+    /* Graphs */
+    .graph-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .g-card { background: white; padding: 10px; height: 180px; border-radius: 8px; border: 1px solid #ddd; }
 
-    /* Search Panels */
-    .search-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px; }
-    .search-card { height: 180px; border-radius: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; position: relative; overflow: hidden; }
-    .search-card h2 { font-size: 1.6rem; z-index: 2; margin: 0; }
-    .search-card input { width: 80%; padding: 10px; margin-top: 15px; z-index: 2; border: none; border-radius: 5px; font-weight: 600; }
-    .search-card::after { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,0.6); }
-
-    #loading-bar { position: fixed; top: 0; left: 0; height: 4px; background: var(--rail-red); transition: width 0.4s; z-index: 1000; width: 0%; }
+    #loader { position: fixed; top: 0; left: 0; width: 0%; height: 4px; background: var(--rail-red); transition: 0.3s; z-index: 1000; }
   </style>
 </head>
 <body>
-  <div id="loading-bar"></div>
-  
-  <header class="master-header">
-    <div class="logo-container">
-      <img src="https://upload.wikimedia.org/wikipedia/en/thumb/4/41/South_East_Central_Railway_Logo.png/220px-South_East_Central_Railway_Logo.png" class="logo">
-    </div>
-    <div class="title-container">
+  <div id="loader"></div>
+  <div class="master-header">
+    <img src="https://upload.wikimedia.org/wikipedia/en/thumb/4/41/South_East_Central_Railway_Logo.png/220px-South_East_Central_Railway_Logo.png" class="logo">
+    <div class="header-titles">
       <h1>SOUTH EAST CENTRAL RAILWAY</h1>
       <h2>ELECTRICAL (OP) DEPARTMENT, RAIPUR DIVISION</h2>
     </div>
-    <div class="date-ctrl">
-      <input type="date" id="datePicker" onchange="loadData()" style="padding:10px; border-radius:5px; border:1px solid #ccc;">
-    </div>
-  </header>
+    <input type="date" id="datePicker" onchange="loadData()" style="padding:8px; border-radius:5px;">
+  </div>
 
   <div class="kpi-grid animate">
     <div class="card">
       <h3>Speedometer Analysis</h3>
-      <div class="stat-display">
-        <div class="stat-group"><label>Total</label><div id="v1_t">0</div></div>
-        <div class="stat-group" style="color:var(--rail-red)"><label>Violation</label><div id="v1_v">0</div></div>
+      <div class="stats">
+        <div class="stat-box"><label>Total</label><div id="v1_t">0</div></div>
+        <div class="stat-box" style="color:var(--rail-red)"><label>Violation</label><div id="v1_v">0</div></div>
       </div>
       <div class="btn-row">
-        <button class="btn btn-report" onclick="openTable('SPM', false)">REPORT</button>
-        <button class="btn btn-violation" onclick="openTable('SPM', true)">VIOLATION</button>
+        <button class="btn btn-b" onclick="view('SPM', false)">REPORT</button>
+        <button class="btn btn-r" onclick="view('SPM', true)">VIOLATION</button>
       </div>
     </div>
     <div class="card">
       <h3>CVVRS Analysis</h3>
-      <div class="stat-display">
-        <div class="stat-group"><label>Total</label><div id="v2_t">0</div></div>
-        <div class="stat-group" style="color:var(--rail-red)"><label>Violation</label><div id="v2_v">0</div></div>
+      <div class="stats">
+        <div class="stat-box"><label>Total</label><div id="v2_t">0</div></div>
+        <div class="stat-box" style="color:var(--rail-red)"><label>Violation</label><div id="v2_v">0</div></div>
       </div>
       <div class="btn-row">
-        <button class="btn btn-report" onclick="openTable('CVVRS', false)">REPORT</button>
-        <button class="btn btn-violation" onclick="openTable('CVVRS', true)">VIOLATION</button>
+        <button class="btn btn-b" onclick="view('CVVRS', false)">REPORT</button>
+        <button class="btn btn-r" onclick="view('CVVRS', true)">VIOLATION</button>
       </div>
     </div>
     <div class="card">
       <h3>TELOC Cell Analysis</h3>
-      <div class="stat-display">
-        <div class="stat-group"><label>Total</label><div id="v4_t">0</div></div>
-        <div class="stat-group" style="color:var(--rail-red)"><label>Violation</label><div id="v4_v">0</div></div>
+      <div class="stats">
+        <div class="stat-box"><label>Total</label><div id="v4_t">0</div></div>
+        <div class="stat-box" style="color:var(--rail-red)"><label>Violation</label><div id="v4_v">0</div></div>
       </div>
       <div class="btn-row">
-        <button class="btn btn-report" onclick="openTable('TELOC', false)">REPORT</button>
-        <button class="btn btn-violation" onclick="openTable('TELOC', true)">VIOLATION</button>
+        <button class="btn btn-b" onclick="view('TELOC', false)">REPORT</button>
+        <button class="btn btn-r" onclick="view('TELOC', true)">VIOLATION</button>
       </div>
     </div>
     <div class="card">
       <h3>Bulk Analysis</h3>
-      <div class="stat-display">
-        <div class="stat-group"><label>Progress</label><div id="v3_t">0</div></div>
-        <div class="stat-group" style="color:var(--rail-red)"><label>Violation</label><div id="v3_v">0</div></div>
+      <div class="stats">
+        <div class="stat-box"><label>Progress</label><div id="v3_t">0</div></div>
+        <div class="stat-box" style="color:var(--rail-red)"><label>Violation</label><div id="v3_v">0</div></div>
       </div>
       <div class="btn-row">
-        <button class="btn btn-report" onclick="openTable('BULK', false)">REPORT</button>
-        <button class="btn btn-violation" onclick="openTable('BULK', true)">VIOLATION</button>
+        <button class="btn btn-b" onclick="view('BULK', false)">REPORT</button>
+        <button class="btn btn-r" onclick="view('BULK', true)">VIOLATION</button>
       </div>
     </div>
   </div>
 
-  <div class="chart-grid animate">
-    <div class="chart-box"><canvas id="c1"></canvas></div>
-    <div class="chart-box"><canvas id="c2"></canvas></div>
-    <div class="chart-box"><canvas id="c4"></canvas></div>
-    <div class="chart-box"><canvas id="c3"></canvas></div>
+  <div class="graph-grid animate">
+    <div class="g-card"><canvas id="c1"></canvas></div>
+    <div class="g-card"><canvas id="c2"></canvas></div>
+    <div class="g-card"><canvas id="c4"></canvas></div>
+    <div class="g-card"><canvas id="c3"></canvas></div>
   </div>
 
-  <div class="search-panel animate">
-    <div class="search-card" style="background: #1e3a8a url('WAG9.jpg')">
-      <h2>CHIEF LOCO INSPECTOR</h2>
-      <input type="text" list="cliL" placeholder="Monthly Monitoring..." onchange="searchPerson(this.value, 'CLI')">
-      <datalist id="cliL"></datalist>
-    </div>
-    <div class="search-card" style="background: #111 url('MEMU.jpg')">
-      <h2>LOCO PILOTS</h2>
-      <input type="text" list="lpL" placeholder="All Performance..." onchange="searchPerson(this.value, 'LP')">
-      <datalist id="lpL"></datalist>
-    </div>
-  </div>
-
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbwYZa4_6mI0Tycm8s8qztgWuidjvlWC54Ihk-8PYMMulKSoJLojTpJuK3WyxluK-2bbUw/exec";
+    const API = "https://script.google.com/macros/s/AKfycbxMXdh3hgb5gRKxKgUuuHhDdyVatVpzheW-okGgW44xAMEx8mYy-9_JYPavUxB2AEx-/exec";
     
     async function loadData() {
-      const bar = document.getElementById('loading-bar');
-      bar.style.width = "40%";
+      const loader = document.getElementById('loader');
+      loader.style.width = "40%";
       const date = document.getElementById('datePicker').value;
       const res = await fetch(`${API}?date=${date}`);
       const d = await res.json();
       
-      // Update counts and graphs (using Chart.js logic from previous version)
-      // ... [Internal data mapping same as Screenshot 864 style]
-      
-      bar.style.width = "100%";
-      setTimeout(() => bar.style.width = "0%", 500);
+      // Map data to UI
+      document.getElementById('v1_t').innerText = d.snapshot.spm_total;
+      document.getElementById('v1_v').innerText = d.snapshot.spm_vio;
+      document.getElementById('v2_t').innerText = d.snapshot.cvvrs_total;
+      document.getElementById('v2_v').innerText = d.snapshot.cvvrs_vio;
+      document.getElementById('v3_t').innerText = d.snapshot.bulk_total;
+      document.getElementById('v3_v').innerText = d.snapshot.bulk_vio;
+      document.getElementById('v4_t').innerText = d.snapshot.teloc_total;
+      document.getElementById('v4_v').innerText = d.snapshot.teloc_vio;
+
+      loader.style.width = "100%";
+      setTimeout(() => loader.style.width = "0%", 400);
     }
 
-    function openTable(type, vio) {
+    function view(type, vio) {
       const date = document.getElementById('datePicker').value;
       window.open(`report.html?action=fullTable&type=${type}&date=${date}&onlyViolations=${vio}`, '_blank');
     }
 
-    window.onload = loadData; // Default load on open
+    window.onload = loadData;
   </script>
 </body>
 </html>
