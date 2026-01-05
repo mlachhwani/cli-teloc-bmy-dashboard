@@ -1,63 +1,42 @@
-/* ======================================================
-   R DIVISION – TELOC EYE
-   STEP-D1 : KPI Cards Binding
-   ====================================================== */
-
 console.log("APP.JS LOADED");
 
-/* ---------- DOM READY ---------- */
 document.addEventListener("DOMContentLoaded", () => {
   console.log("DOM READY");
   loadDashboard();
 });
 
-/* ---------- MAIN LOADER ---------- */
 async function loadDashboard() {
   try {
-    const response = await fetch(API_CONFIG.API_URL);
+    console.log("Fetching API:", CONFIG.API_URL);
 
-    if (!response.ok) {
-      throw new Error("API fetch failed");
+    const res = await fetch(CONFIG.API_URL, { cache: "no-store" });
+
+    if (!res.ok) {
+      throw new Error("HTTP ERROR: " + res.status);
     }
 
-    const data = await response.json();
+    const data = await res.json();
     console.log("API DATA RECEIVED", data);
 
-    bindSnapshot(data);
-    bindKPIs(data);
+    // Snapshot date
+    document.getElementById("snapshotDate").innerText =
+      new Date(data.generated_at).toLocaleString();
+
+    // KPI counts
+    document.getElementById("spmCount").innerText =
+      data.current_snapshot.spm_rows ?? 0;
+
+    document.getElementById("cvvrsCount").innerText =
+      data.current_snapshot.cvvrs_rows ?? 0;
+
+    document.getElementById("telocCount").innerText =
+      data.current_snapshot.teloc_rows ?? 0;
+
+    document.getElementById("bulkCount").innerText =
+      data.current_snapshot.bulk_rows ?? 0;
 
   } catch (err) {
-    console.error("DASHBOARD LOAD ERROR", err);
-    alert("Failed to load dashboard data");
+    console.error("FAILED TO LOAD DASHBOARD", err);
+    alert("FAILED TO LOAD");
   }
-}
-
-/* ---------- SNAPSHOT DATE ---------- */
-function bindSnapshot(data) {
-  const snapEl = document.getElementById("snapshotDate");
-
-  if (!data.generated_at) {
-    snapEl.textContent = "not available";
-    return;
-  }
-
-  const d = new Date(data.generated_at);
-  snapEl.textContent = d.toLocaleString("en-IN");
-}
-
-/* ---------- KPI CARDS ---------- */
-function bindKPIs(data) {
-  const snap = data.current_snapshot || {};
-
-  setText("spmCount", snap.spm_rows);
-  setText("cvvrsCount", snap.cvvrs_rows);
-  setText("telocCount", snap.teloc_rows);
-  setText("bulkCount", snap.bulk_rows);
-}
-
-/* ---------- SAFE SETTER ---------- */
-function setText(id, value) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.textContent = (value !== undefined && value !== null) ? value : "–";
 }
