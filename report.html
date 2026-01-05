@@ -3,35 +3,56 @@
 <head>
   <title>SECR REPORT VIEW</title>
   <style>
-    body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    th { background: #003399; color: white; padding: 12px; text-align: left; font-size: 0.85rem; white-space: nowrap; }
-    td { padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 0.8rem; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; margin: 0; }
+    .header { background: #003399; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #d11212; position: sticky; top: 0; z-index: 10; }
+    .status-tag { background: #ffeb3b; color: #000; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-left: 10px; }
+    table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    th { background: #f8fafc; color: #1e293b; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; position: sticky; top: 65px; white-space: nowrap; z-index: 5; }
+    td { padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; }
     tr:nth-child(even) { background: #f8fafc; }
-    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    tr:hover { background: #f1f5f9; }
+    .no-data { text-align: center; padding: 50px; color: #64748b; }
   </style>
 </head>
 <body>
   <div class="header">
-    <h2 id="rTitle">Loading Report...</h2>
-    <button onclick="window.close()" style="padding:10px 20px; cursor:pointer; background:#64748b; color:white; border:none; border-radius:5px; font-weight:bold;">CLOSE</button>
+    <div>
+      <span style="font-size: 1.2rem; font-weight: bold;" id="rTitle">Generating Report...</span>
+      <span id="vTag" class="status-tag" style="display:none;">ONLY VIOLATIONS</span>
+    </div>
+    <button onclick="window.close()" style="padding:8px 15px; cursor:pointer; background:#d11212; color:white; border:none; border-radius:5px; font-weight:bold;">CLOSE</button>
   </div>
+
   <div id="tableContent"></div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbxMJFPR84kUmTeNV_iOswKZq-oL5pGn44tE4fgRWSkTOAJUBzhFB4d2JyGlBgyQXSZuxA/exec";
+    const API = "https://script.google.com/macros/s/AKfycbzyat2YPleHlWAtK29HaNUmdXitSyuqminlkdT2YuiX_xr86j6azSnSE0L9YnRBnwu6/exec";
     const p = new URLSearchParams(window.location.search);
 
     async function fetchReport() {
-      document.getElementById('rTitle').innerText = `${p.get('type')} Analysis - ${p.get('date') || 'Full Month'}`;
-      const url = `${API}?action=fullTable&type=${p.get('type')}&date=${p.get('date')}&onlyViolations=${p.get('onlyViolations')}`;
-      const res = await fetch(url);
-      const data = await res.json();
-      render(data);
+      const type = p.get('type');
+      const date = p.get('date');
+      const onlyVio = p.get('onlyViolations');
+
+      document.getElementById('rTitle').innerText = `${type} Analysis - ${date || 'Full Month'}`;
+      if(onlyVio === "true") document.getElementById('vTag').style.display = 'inline';
+
+      const url = `${API}?action=fullTable&type=${type}&date=${date}&onlyViolations=${onlyVio}`;
+      
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        renderTable(data);
+      } catch (e) {
+        document.getElementById('tableContent').innerHTML = "<div class='no-data'>Error connecting to server.</div>";
+      }
     }
 
-    function render(data) {
-      if (!data || data.length < 2) { document.getElementById('tableContent').innerHTML = "<h3>No Records Found for selected date.</h3>"; return; }
+    function renderTable(data) {
+      if (!data || data.length < 2) { 
+        document.getElementById('tableContent').innerHTML = "<div class='no-data'><h3>No records found for the selected criteria.</h3></div>"; 
+        return; 
+      }
       let html = '<table><thead><tr>';
       data[0].forEach(col => html += `<th>${col}</th>`);
       html += '</tr></thead><tbody>';
