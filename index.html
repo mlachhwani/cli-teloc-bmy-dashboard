@@ -1,100 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>R-Division TELOC Analytics</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root { --primary: #1a4f9c; --bg: #f3f6f9; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; }
-        .sidebar { width: 220px; background: #0c2d5e; color: white; height: 100vh; position: fixed; }
-        .nav-item { padding: 15px 25px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
-        .nav-item.active { background: #1a4f9c; border-left: 4px solid #38bdf8; }
-        .main-content { margin-left: 220px; flex: 1; padding: 20px; }
-        .top-bar { background: white; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
-        .kpi-card { color: white; padding: 20px; border-radius: 8px; }
-        .kpi-card h3 { font-size: 0.8rem; margin: 0; opacity: 0.8; }
-        .kpi-card .value { font-size: 1.8rem; font-weight: bold; margin-top: 5px; }
-        .row { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; }
-        .panel { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 10px; font-size: 0.8rem; border-bottom: 1px solid #eee; }
-        td { padding: 10px; font-size: 0.9rem; border-bottom: 1px solid #f9f9f9; }
-        .status-risk { color: red; background: #ffebeb; padding: 2px 5px; border-radius: 4px; font-weight: bold; }
-        .status-clean { color: green; background: #ebffeb; padding: 2px 5px; border-radius: 4px; font-weight: bold; }
-    </style>
+  <meta charset="UTF-8">
+  <title>TELOC EYE PRO - DASHBOARD</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --accent: #38bdf8; }
+    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+    .header { padding: 10px 20px; background: #111827; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 10px 15px; }
+    .kpi-card { background: var(--card); border-radius: 8px; padding: 10px 20px; border-top: 3px solid var(--accent); }
+    .kpi-card span { font-size: 0.75rem; opacity: 0.7; }
+    .kpi-card div { font-size: 1.5rem; font-weight: bold; }
+    .graph-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; padding: 10px; flex-grow: 1; }
+    .chart-box { background: var(--card); border-radius: 8px; padding: 10px; position: relative; }
+    .search-row { height: 100px; background: #111827; display: flex; justify-content: space-around; align-items: center; }
+    input { background: #334155; border: 1px solid var(--accent); color: white; padding: 10px; border-radius: 20px; width: 280px; text-align: center; }
+    input[type="date"] { width: auto; border-radius: 5px; }
+  </style>
 </head>
 <body>
-    <div class="sidebar">
-        <div style="padding: 25px; font-weight: bold; font-size: 1.2rem;">TELOC EYE</div>
-        <div class="nav-item active"><i class="fa fa-chart-line"></i> Dashboard</div>
+
+  <div class="header">
+    <h2 style="margin:0; color: var(--accent);">TELOC EYE ANALYTICS</h2>
+    <input type="date" id="dateSelect" onchange="loadData()">
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card"><span>SPM Today</span><div id="spmVal">0</div></div>
+    <div class="kpi-card"><span>CVVRS Today</span><div id="cvvrsVal">0</div></div>
+    <div class="kpi-card" style="border-top-color: #10b981;"><span>Bulk Events</span><div id="bulkVal">0</div></div>
+    <div class="kpi-card" style="border-top-color: #ef4444;"><span>Violations</span><div id="violVal">0</div></div>
+  </div>
+
+  <div class="graph-grid">
+    <div class="chart-box"><canvas id="spmChart"></canvas></div>
+    <div class="chart-box"><canvas id="cvvrsChart"></canvas></div>
+    <div class="chart-box"><canvas id="bulkChart"></canvas></div>
+    <div class="chart-box"><canvas id="telocChart"></canvas></div>
+  </div>
+
+  <div class="search-row">
+    <div>
+      <span style="display:block; font-size: 0.8rem; margin-bottom:5px;">CLI PERFORMANCE</span>
+      <input list="cliList" id="cliInp" placeholder="Search CLI..." onchange="openReport(this.value, 'CLI')">
+      <datalist id="cliList"></datalist>
     </div>
-
-    <div class="main-content">
-        <div class="top-bar">
-            <h2 style="margin:0">Mission Control Dashboard</h2>
-            <input type="date" id="dateInput" onchange="fetchData()">
-        </div>
-
-        <div class="kpi-grid">
-            <div class="kpi-card" style="background:#1a4f9c"><h3>SPM Analyzed</h3><div class="value" id="spmVal">0</div></div>
-            <div class="kpi-card" style="background:#38bdf8"><h3>CVVRS Analyzed</h3><div class="value" id="cvvrsVal">0</div></div>
-            <div class="kpi-card" style="background:#10b981"><h3>Events Checked</h3><div class="value" id="bulkVal">0</div></div>
-            <div class="kpi-card" style="background:#ef4444"><h3>Violations</h3><div class="value" id="violationVal">0</div></div>
-        </div>
-
-        <div class="row">
-            <div class="panel">
-                <h3>CLI Performance</h3>
-                <div id="cliList">Loading...</div>
-            </div>
-            <div class="panel">
-                <h3>LP Continuous Monitoring</h3>
-                <table>
-                    <thead><tr><th>LP Name</th><th>Irr.</th><th>Status</th></tr></thead>
-                    <tbody id="lpBody"></tbody>
-                </table>
-            </div>
-        </div>
+    <div>
+      <span style="display:block; font-size: 0.8rem; margin-bottom:5px;">LP PERFORMANCE</span>
+      <input list="lpList" id="lpInp" placeholder="Search LP..." onchange="openReport(this.value, 'LP')">
+      <datalist id="lpList"></datalist>
     </div>
+  </div>
 
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxf0CaXKFwme2L0CUh1gIkdg15TnIKYKwuSbLv0piDx1NYWY90cnS4OnobzrPQOXyTu4A/exec";
+  <script>
+    const API = "PASTE_YOUR_DEPLOYED_WEB_APP_URL_HERE"; 
+    let charts = {};
 
-        async function fetchData() {
-            const date = document.getElementById('dateInput').value;
-            if(!date) return;
-            const res = await fetch(`${API_URL}?date=${date}`);
-            const data = await res.json();
-            
-            document.getElementById('spmVal').innerText = data.snapshot.spm_count;
-            document.getElementById('cvvrsVal').innerText = data.snapshot.cvvrs_count;
-            document.getElementById('bulkVal').innerText = data.snapshot.teloc_count;
-            document.getElementById('violationVal').innerText = data.snapshot.violations;
+    async function loadData() {
+      const date = document.getElementById('dateSelect').value;
+      const res = await fetch(`${API}?date=${date}`);
+      const data = await res.json();
 
-            const lpBody = document.getElementById('lpBody');
-            lpBody.innerHTML = Object.entries(data.lp_performance).map(([name, stat]) => `
-                <tr>
-                    <td>${name}</td>
-                    <td>${stat.abnormalities}</td>
-                    <td><span class="${stat.status === 'RISK' ? 'status-risk' : 'status-clean'}">${stat.status}</span></td>
-                </tr>
-            `).join('');
+      document.getElementById('spmVal').innerText = data.snapshot.spm_today;
+      document.getElementById('cvvrsVal').innerText = data.snapshot.cvvrs_today;
+      document.getElementById('bulkVal').innerText = data.snapshot.bulk_today;
+      document.getElementById('violVal').innerText = data.snapshot.violations;
 
-            const cliList = document.getElementById('cliList');
-            cliList.innerHTML = Object.entries(data.cli_performance).map(([name, stat]) => `
-                <div style="margin-bottom:10px">
-                    <small>${name}</small>
-                    <div style="background:#eee; height:10px; border-radius:5px; overflow:hidden">
-                        <div style="background:var(--primary); width:${(stat.issues/stat.done)*100}%; height:100%"></div>
-                    </div>
-                </div>
-            `).join('');
-        }
+      updateDatalist('cliList', data.cli_list);
+      updateDatalist('lpList', data.lp_list);
 
-        document.getElementById('dateInput').value = "2026-01-02";
-        fetchData();
-    </script>
+      renderChart('spmChart', 'SPM Trend', data.trends.dates, data.trends.spm, '#38bdf8');
+      renderChart('cvvrsChart', 'CVVRS Trend', data.trends.dates, data.trends.cvvrs, '#10b981');
+      renderChart('bulkChart', 'Bulk Trend', data.trends.dates, data.trends.bulk, '#f59e0b');
+      renderChart('telocChart', 'Teloc Daily Trend', data.trends.dates, data.trends.teloc, '#a855f7');
+    }
+
+    function renderChart(id, label, x, y, color) {
+      if(charts[id]) charts[id].destroy();
+      charts[id] = new Chart(document.getElementById(id), {
+        type: 'line',
+        data: { labels: x, datasets: [{ label: label, data: y, borderColor: color, tension: 0.3, fill: true, backgroundColor: color+'11' }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    function updateDatalist(id, items) {
+      document.getElementById(id).innerHTML = items.map(i => `<option value="${i}">`).join('');
+    }
+
+    function openReport(val, type) {
+      if(!val) return;
+      window.open(`report.html?name=${encodeURIComponent(val)}&type=${type}`, '_blank');
+      document.getElementById('cliInp').value = ''; document.getElementById('lpInp').value = '';
+    }
+
+    document.getElementById('dateSelect').value = "2026-01-02";
+    loadData();
+  </script>
 </body>
 </html>
