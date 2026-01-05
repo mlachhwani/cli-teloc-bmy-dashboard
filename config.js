@@ -9,5 +9,5 @@
 */
 
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbzc7lf1wuzewLvL_iFYqdJqsIjd27YdeK56z0oSV6urKz6-K6m0p-YPBNTIW0lxB-l7Gw/exec?api=1";
+  "https://script.google.com/macros/s/AKfycbxiOr5NHLpL-9D2a8mkf9p5lhn-aNuK3x1jjZgb0mYdSjU-3sx5f_7UO1PnZw3YgBGksQ/exec?api=1";
 
