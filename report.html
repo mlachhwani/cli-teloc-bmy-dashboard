@@ -17,7 +17,7 @@
   </div>
   <div id="content"></div>
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbz-eRgA8SHDRpa8Y-_LkpPGJ1-ax7_EXVDRUFlsIJtSZE0vCt6QhQZy_25DtJgwtmcHpQ/exec";
+    const API = "https://script.google.com/macros/s/AKfycbyNFMzBNPJYGfyXVtCMhm5dbpxhWAd40KlCc0A8yVZxRd95TbrRQDQFS_s1vUy2u1Wqjw/exec";
     const p = new URLSearchParams(window.location.search);
     async function load() {
       const res = await fetch(`${API}?action=fullTable&type=${p.get('type')}&date=${p.get('date')}&onlyViolations=${p.get('onlyViolations')}`);
