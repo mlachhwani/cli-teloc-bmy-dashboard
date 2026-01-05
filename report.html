@@ -1,70 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>SECR REPORT VIEW</title>
+  <title>SECR Report</title>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; padding: 20px; margin: 0; }
-    .header { background: #003399; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #d11212; position: sticky; top: 0; z-index: 10; }
-    .status-tag { background: #ffeb3b; color: #000; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; margin-left: 10px; }
-    table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    th { background: #f8fafc; color: #1e293b; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; position: sticky; top: 65px; white-space: nowrap; z-index: 5; }
-    td { padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; }
-    tr:nth-child(even) { background: #f8fafc; }
-    tr:hover { background: #f1f5f9; }
-    .no-data { text-align: center; padding: 50px; color: #64748b; }
+    body { font-family: sans-serif; padding: 20px; background: #f8fafc; }
+    table { width: 100%; border-collapse: collapse; background: white; }
+    th { background: #003399; color: white; padding: 12px; text-align: left; position: sticky; top: 0; }
+    td { padding: 10px; border: 1px solid #eee; font-size: 0.85rem; }
+    tr:nth-child(even) { background: #f9f9f9; }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div>
-      <span style="font-size: 1.2rem; font-weight: bold;" id="rTitle">Generating Report...</span>
-      <span id="vTag" class="status-tag" style="display:none;">ONLY VIOLATIONS</span>
-    </div>
-    <button onclick="window.close()" style="padding:8px 15px; cursor:pointer; background:#d11212; color:white; border:none; border-radius:5px; font-weight:bold;">CLOSE</button>
+  <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+    <h2 id="title">Report</h2>
+    <input type="text" id="tableFilter" placeholder="Filter current table..." onkeyup="filterTable()" style="padding:10px; width:250px;">
   </div>
-
-  <div id="tableContent"></div>
+  <div id="content"></div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbzyat2YPleHlWAtK29HaNUmdXitSyuqminlkdT2YuiX_xr86j6azSnSE0L9YnRBnwu6/exec";
+    const API = "https://script.google.com/macros/s/AKfycbzGqnjzjOLIaWH7Ot4iBUWspnDa9GltYhLOmMUB7pJSnOHLPtnbhxyxjl2kows3EahHqA/exec";
     const p = new URLSearchParams(window.location.search);
 
-    async function fetchReport() {
+    async function load() {
       const type = p.get('type');
-      const date = p.get('date');
-      const onlyVio = p.get('onlyViolations');
-
-      document.getElementById('rTitle').innerText = `${type} Analysis - ${date || 'Full Month'}`;
-      if(onlyVio === "true") document.getElementById('vTag').style.display = 'inline';
-
-      const url = `${API}?action=fullTable&type=${type}&date=${date}&onlyViolations=${onlyVio}`;
+      const search = p.get('search');
+      let url = `${API}?action=fullTable&type=${type}&date=${p.get('date')}&onlyViolations=${p.get('onlyViolations')}`;
       
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        renderTable(data);
-      } catch (e) {
-        document.getElementById('tableContent').innerHTML = "<div class='no-data'>Error connecting to server.</div>";
+      const res = await fetch(url);
+      let data = await res.json();
+
+      if(search) {
+        let header = data[0];
+        data = [header, ...data.slice(1).filter(r => r.join(' ').toLowerCase().includes(search.toLowerCase()))];
       }
+
+      let h = '<table><thead><tr>';
+      data[0].forEach(c => h += `<th>${c}</th>`);
+      h += '</tr></thead><tbody id="tbody">';
+      data.slice(1).forEach(r => {
+        h += '<tr>';
+        r.forEach(c => h += `<td>${c}</td>`);
+        h += '</tr>';
+      });
+      document.getElementById('content').innerHTML = h + '</tbody></table>';
+      document.getElementById('title').innerText = `${type} Report`;
     }
 
-    function renderTable(data) {
-      if (!data || data.length < 2) { 
-        document.getElementById('tableContent').innerHTML = "<div class='no-data'><h3>No records found for the selected criteria.</h3></div>"; 
-        return; 
-      }
-      let html = '<table><thead><tr>';
-      data[0].forEach(col => html += `<th>${col}</th>`);
-      html += '</tr></thead><tbody>';
-      data.slice(1).forEach(row => {
-        html += '<tr>';
-        row.forEach(cell => html += `<td>${cell}</td>`);
-        html += '</tr>';
-      });
-      html += '</tbody></table>';
-      document.getElementById('tableContent').innerHTML = html;
+    function filterTable() {
+      let val = document.getElementById('tableFilter').value.toLowerCase();
+      let rows = document.querySelectorAll('#tbody tr');
+      rows.forEach(r => r.style.display = r.innerText.toLowerCase().includes(val) ? '' : 'none');
     }
-    window.onload = fetchReport;
+    window.onload = load;
   </script>
 </body>
 </html>
