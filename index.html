@@ -2,69 +2,64 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>SECR RAILWAY DASHBOARD</title>
+  <title>SECR DASHBOARD</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root { --rail-blue: #003399; --rail-red: #d11212; --bg: #f8fafc; }
-    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; }
-    .master-header { display: flex; align-items: center; justify-content: space-between; background: white; padding: 10px 20px; border-bottom: 4px solid var(--rail-red); border-radius: 8px; margin-bottom: 15px; }
-    .header-left { display: flex; align-items: center; gap: 10px; }
-    .header-right { display: flex; align-items: center; gap: 8px; }
-    .search-input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 150px; }
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; }
-    .card { background: white; padding: 15px; border-radius: 10px; border-top: 4px solid var(--rail-blue); text-align: center; }
-    .stat-val { font-size: 1.8rem; font-weight: 800; margin: 5px 0; }
-    .btn-row { display: flex; gap: 5px; margin-top: 10px; }
-    .btn { flex: 1; padding: 8px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; font-size: 0.7rem; }
-    .chart-container { background: white; padding: 20px; border-radius: 10px; height: 300px; }
+    :root { --rail-blue: #003399; --rail-red: #d11212; --bg: #f4f6f9; }
+    body { font-family: sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+    .header { display: flex; align-items: center; justify-content: space-between; background: white; padding: 15px; border-bottom: 5px solid var(--rail-red); border-radius: 10px; margin-bottom: 20px; }
+    .search-group { display: flex; gap: 10px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 20px; }
+    .card { background: white; padding: 20px; border-radius: 12px; border-top: 5px solid var(--rail-blue); text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .stat { font-size: 2rem; font-weight: bold; margin: 10px 0; }
+    .btn-row { display: flex; gap: 5px; margin-top: 15px; }
+    .btn { flex: 1; padding: 8px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; }
+    .chart-container { background: white; padding: 20px; border-radius: 12px; height: 350px; }
   </style>
 </head>
 <body>
-  <header class="master-header">
-    <div class="header-left">
-      <img src="https://upload.wikimedia.org/wikipedia/en/thumb/4/41/South_East_Central_Railway_Logo.png/220px-South_East_Central_Railway_Logo.png" style="height:50px;">
-      <div><h3 style="margin:0; color:var(--rail-blue);">SECR RAIPUR</h3></div>
+  <div class="header">
+    <div><h2 style="margin:0; color:var(--rail-blue);">SECR RAIPUR DIVISION</h2></div>
+    <div class="search-group">
+      <input type="text" id="lpS" placeholder="LP Search..." onkeyup="if(event.key==='Enter') search('SPM')" style="padding:8px;">
+      <input type="text" id="cliS" placeholder="CLI Search..." onkeyup="if(event.key==='Enter') search('CVVRS')" style="padding:8px;">
+      <input type="date" id="datePicker" onchange="loadData()" style="padding:8px;">
     </div>
-    <div class="header-right">
-      <input type="text" id="lpS" class="search-input" placeholder="LP Search..." onkeyup="if(event.key==='Enter') search('SPM')">
-      <input type="text" id="cliS" class="search-input" placeholder="CLI Search..." onkeyup="if(event.key==='Enter') search('CVVRS')">
-      <input type="date" id="datePicker" onchange="loadData()" style="padding:7px; border-radius:4px; border:1px solid #ccc;">
-    </div>
-  </header>
-
-  <div class="kpi-grid">
-    <div class="card"><h4>SPM</h4><div id="v1_t" class="stat-val">0</div><div style="color:red">Vio: <span id="v1_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('SPM',false)">REP</button><button class="btn" style="background:red" onclick="go('SPM',true)">VIO</button></div></div>
-    <div class="card"><h4>CVVRS</h4><div id="v2_t" class="stat-val">0</div><div style="color:red">Vio: <span id="v2_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('CVVRS',false)">REP</button><button class="btn" style="background:red" onclick="go('CVVRS',true)">VIO</button></div></div>
-    <div class="card"><h4>TELOC</h4><div id="v4_t" class="stat-val">0</div><div style="color:red">Vio: <span id="v4_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('TELOC',false)">REP</button><button class="btn" style="background:red" onclick="go('TELOC',true)">VIO</button></div></div>
-    <div class="card" style="border-top-color:#059669"><h4>Bulk Analysis</h4><div id="v3_t" class="stat-val">0</div><div style="color:red">Vio: <span id="v3_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('BULK',false)">REP</button><button class="btn" style="background:red" onclick="go('BULK',true)">VIO</button></div></div>
   </div>
 
-  <div class="chart-container"><canvas id="myChart"></canvas></div>
+  <div class="kpi-grid">
+    <div class="card"><h3>SPM</h3><div id="v1_t" class="stat">0</div><div style="color:red">Vio: <span id="v1_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('SPM',false)">REP</button><button class="btn" style="background:red" onclick="go('SPM',true)">VIO</button></div></div>
+    <div class="card"><h3>CVVRS</h3><div id="v2_t" class="stat">0</div><div style="color:red">Vio: <span id="v2_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('CVVRS',false)">REP</button><button class="btn" style="background:red" onclick="go('CVVRS',true)">VIO</button></div></div>
+    <div class="card"><h3>TELOC</h3><div id="v4_t" class="stat">0</div><div style="color:red">Vio: <span id="v4_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('TELOC',false)">REP</button><button class="btn" style="background:red" onclick="go('TELOC',true)">VIO</button></div></div>
+    <div class="card" style="border-top-color:#059669"><h3>Bulk Analysis</h3><div id="v3_t" class="stat">0</div><div style="color:red">Vio: <span id="v3_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('BULK',false)">REP</button><button class="btn" style="background:red" onclick="go('BULK',true)">VIO</button></div></div>
+  </div>
+
+  <div class="chart-container"><canvas id="mainChart"></canvas></div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbw5Ghc3DqoS3kIQjhcKat293BhZ7Y2N4iKz42MtewaFjamAawT-gaY4fSyGhgY5pocKTw/exec";
+    const API = "https://script.google.com/macros/s/AKfycbxP47Xy5krhydu-SSEY9lWE6Dye55kzuT08BLH3hldQ532ZySqXWwTJ7Zn6Z5cBV8dWdw/exec";
     let chart;
 
     async function loadData() {
       const res = await fetch(`${API}?date=${document.getElementById('datePicker').value}`);
       const d = await res.json();
       const map = {v1_t:'spm_total', v1_v:'spm_vio', v2_t:'cvvrs_total', v2_v:'cvvrs_vio', v3_t:'bulk_total', v3_v:'bulk_vio', v4_t:'teloc_total', v4_v:'teloc_vio'};
-      for(let k in map) document.getElementById(k).innerText = d.snapshot[map[k]] || 0;
+      for(let key in map) document.getElementById(key).innerText = d.snapshot[map[key]] || 0;
 
       if(chart) chart.destroy();
-      chart = new Chart(document.getElementById('myChart'), {
+      chart = new Chart(document.getElementById('mainChart'), {
         type: 'line',
         data: {
           labels: d.trends.map(x => x.day),
-          datasets: [{ label: 'Violations', data: d.trends.map(x => x.vio), borderColor: 'red', fill: true, tension: 0.3 }]
+          datasets: [{ label: 'Violations Trend', data: d.trends.map(x => x.vio), borderColor: 'red', fill: true, tension: 0.3 }]
         },
         options: { maintainAspectRatio: false }
       });
     }
 
     function search(type) {
-      const q = (type === 'SPM') ? document.getElementById('lpS').value : document.getElementById('cliS').value;
-      window.open(`report.html?type=${type}&search=${q}`, '_blank');
+      const val = (type === 'SPM') ? document.getElementById('lpS').value : document.getElementById('cliS').value;
+      window.open(`report.html?type=${type}&search=${val}`, '_blank');
     }
 
     function go(t, v) { window.open(`report.html?type=${t}&date=${document.getElementById('datePicker').value}&onlyViolations=${v}`, '_blank'); }
