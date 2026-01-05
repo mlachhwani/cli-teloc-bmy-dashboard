@@ -7,16 +7,16 @@
     :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; }
     body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
     .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 10px 15px; }
-    .card { background: var(--card); padding: 12px; border-radius: 8px; border-top: 4px solid var(--accent); }
+    .card { background: var(--card); padding: 12px; border-radius: 8px; border-top: 4px solid var(--accent); text-align: center; }
     .graph-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 15px; flex-grow: 1; }
-    .chart-container { background: var(--card); border-radius: 8px; padding: 10px; height: 210px; }
+    .chart-box { background: var(--card); border-radius: 8px; padding: 10px; height: 210px; }
     .search-row { height: 90px; background: #111827; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #334155; }
     input { background: #334155; border: 1px solid var(--accent); color: white; padding: 10px; border-radius: 20px; width: 280px; text-align: center; }
   </style>
 </head>
 <body>
   <div style="padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; background: #111827;">
-    <h2 style="margin:0; color:var(--accent)">TELOC EYE ANALYTICS</h2>
+    <h2 style="margin:0; color:var(--accent)">TELOC EYE DASHBOARD</h2>
     <input type="date" id="datePicker" onchange="init()" style="width: auto; border-radius: 5px;">
   </div>
 
@@ -28,25 +28,26 @@
   </div>
 
   <div class="graph-grid">
-    <div class="chart-container"><canvas id="c1"></canvas></div>
-    <div class="chart-container"><canvas id="c2"></canvas></div>
-    <div class="chart-container"><canvas id="c3"></canvas></div>
-    <div class="chart-container"><canvas id="c4"></canvas></div>
+    <div class="chart-box"><canvas id="c1"></canvas></div>
+    <div class="chart-box"><canvas id="c2"></canvas></div>
+    <div class="chart-box"><canvas id="c3"></canvas></div>
+    <div class="chart-box"><canvas id="c4"></canvas></div>
   </div>
 
   <div class="search-row">
-    <input list="cliL" id="cliI" placeholder="Type CLI Name..." onchange="go(this.value, 'CLI')"><datalist id="cliL"></datalist>
-    <input list="lpL" id="lpI" placeholder="Type LP Name..." onchange="go(this.value, 'LP')"><datalist id="lpL"></datalist>
+    <input list="cliL" id="cliI" placeholder="Search CLI Name..." onchange="go(this.value, 'CLI')"><datalist id="cliL"></datalist>
+    <input list="lpL" id="lpI" placeholder="Search LP Name..." onchange="go(this.value, 'LP')"><datalist id="lpL"></datalist>
   </div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbyKUnbldDGdlWi7rQBR5GFt7Pf069_2DLttW2-sBamW6eovaOJMiKUq-4mGWwSTnngb2A/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbyFg5rUlnG706XsLIU9HaGV2mXxxREMBoo2bDE3GvQcLZLQM9Riv4V4GqE45MUHJdMNgA/exec"; 
     let charts = {};
 
     async function init() {
-      const d = document.getElementById('datePicker').value;
-      const r = await fetch(`${API}?date=${d}`);
-      const data = await r.json();
+      const date = document.getElementById('datePicker').value;
+      const res = await fetch(`${API_URL}?date=${date}`);
+      const data = await res.json();
+      
       document.getElementById('v1').innerText = data.snapshot.spm_today;
       document.getElementById('v2').innerText = data.snapshot.cvvrs_today;
       document.getElementById('v3').innerText = data.snapshot.bulk_today;
@@ -55,10 +56,10 @@
       document.getElementById('cliL').innerHTML = data.cli_list.map(n => `<option value="${n}">`).join('');
       document.getElementById('lpL').innerHTML = data.lp_list.map(n => `<option value="${n}">`).join('');
 
-      render('c1', 'Monthly SPM', data.trends.dates, data.trends.spm, '#38bdf8');
-      render('c2', 'Monthly CVVRS', data.trends.dates, data.trends.cvvrs, '#10b981');
-      render('c3', 'Monthly Bulk', data.trends.dates, data.trends.bulk, '#f59e0b');
-      render('c4', 'Monthly Violations', data.trends.dates, data.trends.teloc, '#ef4444');
+      render('c1', 'SPM Count', data.trends.dates, data.trends.spm, '#38bdf8');
+      render('c2', 'CVVRS Count', data.trends.dates, data.trends.cvvrs, '#10b981');
+      render('c3', 'Bulk Count', data.trends.dates, data.trends.bulk, '#f59e0b');
+      render('c4', 'Violations', data.trends.dates, data.trends.teloc, '#ef4444');
     }
 
     function render(id, label, x, y, color) {
@@ -66,14 +67,15 @@
       charts[id] = new Chart(document.getElementById(id), {
         type: 'line',
         data: { labels: x, datasets: [{ label: label, data: y, borderColor: color, tension: 0.3, fill: true, backgroundColor: color+'11' }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { enabled: true } } }
+        options: { responsive: true, maintainAspectRatio: false }
       });
     }
 
-    function go(v, t) {
-      if(!v) return;
-      window.open(`report.html?name=${encodeURIComponent(v)}&type=${t}`, '_blank');
-      document.getElementById('cliI').value = ''; document.getElementById('lpI').value = '';
+    function go(val, type) {
+      if(!val) return;
+      window.open(`report.html?name=${encodeURIComponent(val)}&type=${type}`, '_blank');
+      document.getElementById('cliI').value = ''; 
+      document.getElementById('lpI').value = '';
     }
     document.getElementById('datePicker').value = "2026-01-02";
     init();
