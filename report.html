@@ -1,31 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>SECR Report</title>
+  <title>SECR REPORT VIEW</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f8fafc; }
-    table { width: 100%; border-collapse: collapse; background: white; }
-    th { background: #003399; color: white; padding: 12px; text-align: left; position: sticky; top: 0; }
-    td { padding: 10px; border: 1px solid #eee; font-size: 0.85rem; }
-    tr:nth-child(even) { background: #f9f9f9; }
+    body { font-family: sans-serif; background: #f8fafc; padding: 20px; }
+    .head-bar { background: #003399; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 8px; position: sticky; top: 0; }
+    table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    th { background: #f1f5f9; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 0.8rem; position: sticky; top: 60px; }
+    td { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+    #filter { padding: 8px; width: 250px; border-radius: 4px; border: none; }
   </style>
 </head>
 <body>
-  <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
-    <h2 id="title">Report</h2>
-    <input type="text" id="tableFilter" placeholder="Filter current table..." onkeyup="filterTable()" style="padding:10px; width:250px;">
+  <div class="head-bar">
+    <h2 id="title" style="margin:0">Loading...</h2>
+    <input type="text" id="filter" placeholder="Filter this table..." onkeyup="doFieldFilter()">
+    <button onclick="window.close()" style="padding:8px 15px; cursor:pointer;">CLOSE</button>
   </div>
   <div id="content"></div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbzGqnjzjOLIaWH7Ot4iBUWspnDa9GltYhLOmMUB7pJSnOHLPtnbhxyxjl2kows3EahHqA/exec";
+    const API = "https://script.google.com/macros/s/AKfycbzLXnwvfTPtajZ9WEalkhAcwawGHNQ9EtG3Yo3H6T0zmlopr9nmywm3uPVnKcf_91UHZQ/exec";
     const p = new URLSearchParams(window.location.search);
 
-    async function load() {
-      const type = p.get('type');
+    async function init() {
       const search = p.get('search');
-      let url = `${API}?action=fullTable&type=${type}&date=${p.get('date')}&onlyViolations=${p.get('onlyViolations')}`;
-      
+      const url = `${API}?action=fullTable&type=${p.get('type')}&date=${p.get('date')}&onlyViolations=${p.get('onlyViolations')}`;
       const res = await fetch(url);
       let data = await res.json();
 
@@ -36,22 +36,22 @@
 
       let h = '<table><thead><tr>';
       data[0].forEach(c => h += `<th>${c}</th>`);
-      h += '</tr></thead><tbody id="tbody">';
+      h += '</tr></thead><tbody id="tb">';
       data.slice(1).forEach(r => {
         h += '<tr>';
         r.forEach(c => h += `<td>${c}</td>`);
         h += '</tr>';
       });
       document.getElementById('content').innerHTML = h + '</tbody></table>';
-      document.getElementById('title').innerText = `${type} Report`;
+      document.getElementById('title').innerText = `${p.get('type')} Report`;
     }
 
-    function filterTable() {
-      let val = document.getElementById('tableFilter').value.toLowerCase();
-      let rows = document.querySelectorAll('#tbody tr');
+    function doFieldFilter() {
+      let val = document.getElementById('filter').value.toLowerCase();
+      let rows = document.querySelectorAll('#tb tr');
       rows.forEach(r => r.style.display = r.innerText.toLowerCase().includes(val) ? '' : 'none');
     }
-    window.onload = load;
+    window.onload = init;
   </script>
 </body>
 </html>
