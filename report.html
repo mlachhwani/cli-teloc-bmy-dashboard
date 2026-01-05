@@ -2,31 +2,43 @@
 <html>
 <head>
   <style>
-    body { font-family: sans-serif; background: #f8fafc; padding: 30px; }
-    .card { background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); overflow: hidden; max-width: 800px; margin: auto; }
-    .head { background: #1e293b; color: white; padding: 20px; }
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-    th { background: #f1f5f9; font-size: 12px; color: #64748b; }
+    body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
+    .container { background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: auto; max-width: 1200px; margin: auto; }
+    .header { background: #1e3a8a; color: white; padding: 20px; text-align: center; }
+    .header.violation { background: #be123c; }
+    table { width: 100%; border-collapse: collapse; min-width: 800px; }
+    th { background: #f8fafc; padding: 12px; text-align: left; border-bottom: 2px solid #e2e8f0; font-size: 11px; text-transform: uppercase; }
+    td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+    tr:nth-child(even) { background: #fcfcfc; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="head"><h2 id="n">--</h2><small id="t">--</small></div>
-    <table>
-      <thead><tr><th>Date</th><th>Loco</th><th>Section</th><th>Remarks</th></tr></thead>
-      <tbody id="b"></tbody>
+  <div class="container">
+    <div id="h" class="header"><h1>DATA REPORT</h1><p id="sub"></p></div>
+    <table id="tbl">
+      <thead id="thead"></thead>
+      <tbody id="tbody"></tbody>
     </table>
   </div>
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbxg3mEv6z_2KS4gPkUuVlQGDWZx214Mb4haDkCc7z0YXfPcJXIQNRQ53p7saPM4O3elzw/exec";
+    const API = "https://script.google.com/macros/s/AKfycbwzR1uFmdCB-J_wVDHm2K8tOw0h-4lZ14n5-3zNowCmJdfOu1O89wyO96NnOATCAVnROQ/exec";
     const p = new URLSearchParams(window.location.search);
-    document.getElementById('n').innerText = p.get('name');
-    document.getElementById('t').innerText = p.get('type') + " Monthly Record";
+    
     async function load() {
-      const r = await fetch(`${API}?getReport=true&name=${encodeURIComponent(p.get('name'))}&type=${p.get('type')}`);
-      const d = await r.json();
-      document.getElementById('b').innerHTML = d.map(r => `<tr><td>${r.date}</td><td><b>${r.loco}</b></td><td>${r.section}</td><td>${r.remark}</td></tr>`).join('');
+      const url = `${API}?${p.toString()}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      
+      if(p.get('action') === "fullTable") {
+        if(p.get('onlyViolations') === "true") document.getElementById('h').classList.add('violation');
+        document.getElementById('sub').innerText = `${p.get('type')} - DATE: ${p.get('date')}`;
+        document.getElementById('thead').innerHTML = `<tr>${data.headers.map(h => `<th>${h}</th>`).join('')}</tr>`;
+        document.getElementById('tbody').innerHTML = data.rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('');
+      } else {
+        document.getElementById('sub').innerText = `NAME: ${p.get('name')} (${p.get('role')})`;
+        document.getElementById('thead').innerHTML = `<tr><th>DATE</th><th>SOURCE</th><th>LOCO</th><th>SECTION</th><th>REMARKS</th></tr>`;
+        document.getElementById('tbody').innerHTML = data.map(r => `<tr><td>${r.date}</td><td><b>${r.type}</b></td><td>${r.loco}</td><td>${r.section}</td><td>${r.remark}</td></tr>`).join('');
+      }
     }
     load();
   </script>
