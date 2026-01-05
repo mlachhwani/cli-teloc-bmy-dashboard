@@ -7,33 +7,40 @@
   <style>
     :root { --rail-blue: #003399; --rail-red: #ff0000; --bg: #f4f7f6; }
     body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; }
-    .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-bottom: 4px solid var(--rail-red); border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
-    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+    .header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 10px 25px; border-bottom: 4px solid var(--rail-red); border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
     .card { background: white; padding: 20px; border-radius: 12px; text-align: center; border-top: 5px solid var(--rail-blue); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    .stat-val { font-size: 2.2rem; font-weight: bold; color: #333; }
+    .stat-val { font-size: 2.2rem; font-weight: bold; }
     .vio-label { color: var(--rail-red); font-weight: bold; margin: 10px 0; }
     .btn-row { display: flex; gap: 5px; }
-    .btn { flex: 1; padding: 8px; border: none; border-radius: 4px; color: white; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+    .btn { flex: 1; padding: 10px; border: none; border-radius: 6px; color: white; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
   </style>
 </head>
 <body>
   <div class="header">
-    <div><h2 style="margin:0; color:var(--rail-blue);">SECR RAIPUR DIVISION</h2><small>ELECTRICAL (OP) DASHBOARD</small></div>
-    <input type="date" id="datePicker" style="padding:8px; border-radius:4px; border:1px solid #ccc;" onchange="loadData()">
+    <div><h2 style="margin:0; color:var(--rail-blue);">SECR RAIPUR DIVISION</h2><small>ELECTRICAL (OP) DEPARTMENT</small></div>
+    <div style="display:flex; gap:10px;">
+      <input type="text" id="lpSearch" placeholder="LP ID..." style="padding:8px; border-radius:4px; border:1px solid #ccc;">
+      <input type="date" id="datePicker" style="padding:8px; border-radius:4px; border:1px solid #ccc;" onchange="loadData()">
+    </div>
   </div>
 
-  <div class="grid">
+  <div class="kpi-grid">
     <div class="card"><h3>SPM</h3><div class="stat-val" id="spm_t">0</div><div class="vio-label">Violations: <span id="spm_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('SPM',false)">REP</button><button class="btn" style="background:red" onclick="go('SPM',true)">VIO</button></div></div>
     <div class="card"><h3>CVVRS</h3><div class="stat-val" id="cvvrs_t">0</div><div class="vio-label">Violations: <span id="cvvrs_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('CVVRS',false)">REP</button><button class="btn" style="background:red" onclick="go('CVVRS',true)">VIO</button></div></div>
     <div class="card"><h3>TELOC</h3><div class="stat-val" id="teloc_t">0</div><div class="vio-label">Violations: <span id="teloc_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('TELOC',false)">REP</button><button class="btn" style="background:red" onclick="go('TELOC',true)">VIO</button></div></div>
-    <div class="card"><h3>Bulk Analysis</h3><div class="stat-val" id="bulk_t">0</div><div class="vio-label">Violations: <span id="bulk_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('BULK',false)">REP</button><button class="btn" style="background:red" onclick="go('BULK',true)">VIO</button></div></div>
+    <div class="card"><h3>BULK</h3><div class="stat-val" id="bulk_t">0</div><div class="vio-label">Violations: <span id="bulk_v">0</span></div><div class="btn-row"><button class="btn" style="background:#0284c7" onclick="go('BULK',false)">REP</button><button class="btn" style="background:red" onclick="go('BULK',true)">VIO</button></div></div>
   </div>
-
-  <div style="background:white; padding:20px; border-radius:12px; height:350px;"><canvas id="mainChart"></canvas></div>
+  <div style="background:white; padding:20px; border-radius:12px; height:400px;"><canvas id="mainChart"></canvas></div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbyR474nMqsFwqsafSsw_GnkiTYqD0EV6t8TqraasOu4YWNXPcUEZcvImMj_7Yu54fglZQ/exec"; 
+    const API = "https://script.google.com/macros/s/AKfycbyHWcyOD4B8PVFb6qcngfIT3e-jm6VcbF0fSV5_uknxA9OkUVxZl4PtElu63GfIJXvgFw/exec"; 
     let chart;
+
+    window.onload = () => {
+      document.getElementById('datePicker').value = "2025-12-22"; // Forced test
+      loadData();
+    };
 
     async function loadData() {
       const date = document.getElementById('datePicker').value;
@@ -54,16 +61,13 @@
         type: 'line',
         data: {
           labels: d.trends.map(x => x.day),
-          datasets: [{ label: 'Violations', data: d.trends.map(x => x.vio), borderColor: 'red', fill: true, tension: 0.3 }]
+          datasets: [{ label: 'Daily Violations', data: d.trends.map(x => x.vio), borderColor: 'red', fill: true, tension: 0.3 }]
         },
         options: { maintainAspectRatio: false }
       });
     }
 
     function go(t, v) { window.open(`report.html?type=${t}&date=${document.getElementById('datePicker').value}&onlyViolations=${v}`, '_blank'); }
-    
-    document.getElementById('datePicker').value = "2025-12-22"; // Forced test date
-    window.onload = loadData;
   </script>
 </body>
 </html>
