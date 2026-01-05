@@ -1,83 +1,123 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>TELOC EYE PRO DASHBOARD</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TELOC EYE | PROFESSIONAL DASHBOARD</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root { --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; }
-    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; margin: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
-    .header { padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; background: #111827; }
-    .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; }
-    .card { background: var(--card); padding: 15px; border-radius: 8px; border-top: 4px solid var(--accent); text-align: center; }
-    .graph-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 15px; flex-grow: 1; }
-    .chart-container { background: var(--card); border-radius: 8px; padding: 10px; height: 210px; }
-    .search-row { height: 100px; background: #111827; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #334155; }
-    input { background: #334155; border: 1px solid var(--accent); color: white; padding: 12px; border-radius: 25px; width: 280px; text-align: center; }
+    :root { --primary: #0284c7; --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --border: #e2e8f0; }
+    body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); margin: 0; overflow-x: hidden; }
+    
+    /* Preloader */
+    #loader { position: fixed; inset: 0; background: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; transition: 0.5s; }
+    .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Header */
+    header { background: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .logo { font-size: 1.4rem; font-weight: 800; color: var(--primary); letter-spacing: -1px; }
+    
+    /* KPI Cards */
+    .dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; padding: 1.5rem 2rem; }
+    .kpi-card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid var(--border); transition: transform 0.2s; }
+    .kpi-card:hover { transform: translateY(-3px); }
+    .kpi-label { color: #64748b; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
+    .kpi-value { font-size: 2rem; font-weight: 700; color: var(--text); }
+
+    /* Charts */
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; padding: 0 2rem 2rem 2rem; }
+    .chart-container { background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border); height: 260px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+    /* Search Footer */
+    .search-footer { background: white; padding: 1.5rem; border-top: 1px solid var(--border); display: flex; gap: 2rem; justify-content: center; position: sticky; bottom: 0; }
+    .search-input { padding: 12px 20px; width: 320px; border-radius: 30px; border: 1px solid var(--border); background: #f8fafc; outline: none; transition: 0.3s; }
+    .search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.1); }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h2 style="margin:0; color:var(--accent)">TELOC EYE ANALYTICS</h2>
-    <input type="date" id="dateSelect" onchange="init()" style="width: auto; border-radius: 5px;">
+
+  <div id="loader">
+    <div class="spinner"></div>
+    <p style="margin-top: 15px; font-weight: 500; color: #64748b;">Loading Real-time Data...</p>
   </div>
 
-  <div class="kpi-row">
-    <div class="card">SPM TODAY<div id="v1" style="font-size:1.5rem; font-weight:bold">0</div></div>
-    <div class="card">CVVRS TODAY<div id="v2" style="font-size:1.5rem; font-weight:bold">0</div></div>
-    <div class="card">BULK EVENTS<div id="v3" style="font-size:1.5rem; font-weight:bold">0</div></div>
-    <div class="card" style="border-top-color:#ef4444">VIOLATIONS<div id="v4" style="font-size:1.5rem; font-weight:bold">0</div></div>
-  </div>
+  <header>
+    <div class="logo">TELOC <span style="font-weight: 400; color: #64748b;">EYE PRO</span></div>
+    <input type="date" id="datePicker" onchange="loadData()" style="padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+  </header>
 
-  <div class="graph-grid">
-    <div class="chart-container"><canvas id="c1"></canvas></div>
-    <div class="chart-container"><canvas id="c2"></canvas></div>
-    <div class="chart-container"><canvas id="c3"></canvas></div>
-    <div class="chart-container"><canvas id="c4"></canvas></div>
-  </div>
+  <main>
+    <div class="dashboard-grid">
+      <div class="kpi-card"><div class="kpi-label">SPM Records</div><div id="v1" class="kpi-value">0</div></div>
+      <div class="kpi-card"><div class="kpi-label">CVVRS Records</div><div id="v2" class="kpi-value">0</div></div>
+      <div class="kpi-card"><div class="kpi-label">Bulk Analysis</div><div id="v3" class="kpi-value">0</div></div>
+      <div class="kpi-card" style="border-top: 4px solid #ef4444;"><div class="kpi-label">Total Violations</div><div id="v4" class="kpi-value" style="color: #ef4444;">0</div></div>
+    </div>
 
-  <div class="search-row">
-    <input list="cliL" id="cliI" placeholder="Search CLI (e.g. MU...)" onchange="go(this.value, 'CLI')"><datalist id="cliL"></datalist>
-    <input list="lpL" id="lpI" placeholder="Search LP (e.g. RA...)" onchange="go(this.value, 'LP')"><datalist id="lpL"></datalist>
-  </div>
+    <div class="chart-grid">
+      <div class="chart-container"><canvas id="c1"></canvas></div>
+      <div class="chart-container"><canvas id="c2"></canvas></div>
+      <div class="chart-container"><canvas id="c3"></canvas></div>
+      <div class="chart-container"><canvas id="c4"></canvas></div>
+    </div>
+  </main>
+
+  <footer class="search-footer">
+    <input type="text" list="cliL" id="cliI" class="search-input" placeholder="Search CLI Monitoring..." onchange="openReport(this.value, 'CLI')">
+    <datalist id="cliL"></datalist>
+    <input type="text" list="lpL" id="lpI" class="search-input" placeholder="Search LP Performance..." onchange="openReport(this.value, 'LP')">
+    <datalist id="lpL"></datalist>
+  </footer>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbxMxS6vLHuxOzAios9j6BAEt8g8sGTb9QMROkwn4F-WhXuuysVUnq2FZPddJk-nJw1kEg/exec"; // Yahan apna URL paste karein
+    const API = "https://script.google.com/macros/s/AKfycbwRbglwKjZCX_-WHvlnkHwFVKd7erfU3ycVLfe9P9RlMhPeGByzkgE4EXldSoiut8YjXw/exec"; // PASTE YOUR URL
     let charts = {};
 
-    async function init() {
-      const d = document.getElementById('dateSelect').value;
-      const res = await fetch(`${API}?date=${d}`);
-      const data = await res.json();
-      document.getElementById('v1').innerText = data.snapshot.spm_today;
-      document.getElementById('v2').innerText = data.snapshot.cvvrs_today;
-      document.getElementById('v3').innerText = data.snapshot.bulk_today;
-      document.getElementById('v4').innerText = data.snapshot.violations;
-      
-      document.getElementById('cliL').innerHTML = data.cli_list.map(n => `<option value="${n}">`).join('');
-      document.getElementById('lpL').innerHTML = data.lp_list.map(n => `<option value="${n}">`).join('');
+    async function loadData() {
+      document.getElementById('loader').style.display = 'flex';
+      const date = document.getElementById('datePicker').value;
+      try {
+        const res = await fetch(`${API}?date=${date}`);
+        const data = await res.json();
 
-      render('c1', 'SPM Trend', data.trends.dates, data.trends.spm, '#38bdf8');
-      render('c2', 'CVVRS Trend', data.trends.dates, data.trends.cvvrs, '#10b981');
-      render('c3', 'Bulk Trend', data.trends.dates, data.trends.bulk, '#f59e0b');
-      render('c4', 'Violations Trend', data.trends.dates, data.trends.teloc, '#ef4444');
+        // Cards
+        document.getElementById('v1').innerText = data.snapshot.spm_today;
+        document.getElementById('v2').innerText = data.snapshot.cvvrs_today;
+        document.getElementById('v3').innerText = data.snapshot.bulk_today;
+        document.getElementById('v4').innerText = data.snapshot.violations;
+
+        // Trends
+        updateChart('c1', 'SPM Count', data.trends.dates, data.trends.spm, '#0284c7');
+        updateChart('c2', 'CVVRS Count', data.trends.dates, data.trends.cvvrs, '#10b981');
+        updateChart('c3', 'Bulk Events', data.trends.dates, data.trends.bulk, '#f59e0b');
+        updateChart('c4', 'Violations', data.trends.dates, data.trends.teloc, '#ef4444');
+
+        // Lists
+        document.getElementById('cliL').innerHTML = data.cli_list.map(n => `<option value="${n}">`).join('');
+        document.getElementById('lpL').innerHTML = data.lp_list.map(n => `<option value="${n}">`).join('');
+
+      } catch (e) { console.error("Data fetch failed"); }
+      document.getElementById('loader').style.display = 'none';
     }
 
-    function render(id, label, x, y, color) {
+    function updateChart(id, label, x, y, color) {
       if(charts[id]) charts[id].destroy();
       charts[id] = new Chart(document.getElementById(id), {
         type: 'line',
-        data: { labels: x, datasets: [{ label: label, data: y, borderColor: color, tension: 0.3, fill: true, backgroundColor: color+'11' }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { enabled: true } } }
+        data: { labels: x, datasets: [{ label: label, data: y, borderColor: color, backgroundColor: color+'10', fill: true, tension: 0.4, borderWidth: 2, pointRadius: 1 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } } }
       });
     }
 
-    function go(v, t) {
-      if(!v) return;
-      window.open(`report.html?name=${encodeURIComponent(v)}&type=${t}`, '_blank');
+    function openReport(name, type) {
+      if(!name) return;
+      window.open(`report.html?name=${encodeURIComponent(name)}&type=${type}`, '_blank');
       document.getElementById('cliI').value = ''; document.getElementById('lpI').value = '';
     }
-    document.getElementById('dateSelect').value = "2026-01-02";
-    init();
+
+    document.getElementById('datePicker').value = new Date().toISOString().split('T')[0];
+    loadData();
   </script>
 </body>
 </html>
