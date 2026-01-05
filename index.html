@@ -6,17 +6,17 @@
   <style>
     :root { --rail-blue: #003399; --rail-red: #d11212; --bg: #f8fafc; }
     body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 15px; }
-    .master-header { display: flex; align-items: center; background: white; padding: 10px 40px; border-bottom: 5px solid var(--rail-red); border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-    .logo { height: 85px; }
+    .master-header { display: flex; align-items: center; background: white; padding: 15px 40px; border-bottom: 5px solid var(--rail-red); border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .logo { height: 90px; }
     .header-text { flex: 1; text-align: center; }
     .header-text h1 { color: var(--rail-blue); margin: 0; font-size: 2.2rem; font-weight: 900; }
-    .header-text h2 { color: #333; margin: 0; font-size: 1.2rem; font-weight: bold; }
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-    .card { background: white; padding: 15px; border-radius: 15px; border-top: 5px solid var(--rail-blue); text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-    .stat-row { display: flex; justify-content: space-around; margin: 15px 0; }
-    .stat-val { font-size: 1.8rem; font-weight: 800; color: #1e293b; }
-    .btn-row { display: flex; gap: 8px; }
-    .btn { flex: 1; padding: 10px; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold; font-size: 0.8rem; transition: 0.3s; }
+    .header-text h2 { color: #333; margin: 5px 0 0 0; font-size: 1.2rem; font-weight: bold; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    .card { background: white; padding: 20px; border-radius: 15px; border-top: 5px solid var(--rail-blue); text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+    .stat-row { display: flex; justify-content: space-around; margin: 20px 0; }
+    .stat-val { font-size: 2rem; font-weight: 800; color: #1e293b; }
+    .btn-row { display: flex; gap: 10px; }
+    .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold; font-size: 0.85rem; transition: 0.3s; }
     .btn-b { background: #0284c7; } .btn-r { background: #e11d48; }
     .btn:hover { filter: brightness(1.1); }
   </style>
@@ -32,7 +32,7 @@
   </header>
 
   <div class="kpi-grid">
-    <div class="card">
+    <div class="card" id="spm_card">
       <h3>Speedometer Analysis</h3>
       <div class="stat-row">
         <div><small>TOTAL</small><div id="v1_t" class="stat-val">0</div></div>
@@ -43,7 +43,7 @@
         <button class="btn btn-r" onclick="go('SPM', true)">VIOLATION</button>
       </div>
     </div>
-    <div class="card">
+    <div class="card" id="cvvrs_card">
       <h3>CVVRS Analysis</h3>
       <div class="stat-row">
         <div><small>TOTAL</small><div id="v2_t" class="stat-val">0</div></div>
@@ -54,7 +54,7 @@
         <button class="btn btn-r" onclick="go('CVVRS', true)">VIOLATION</button>
       </div>
     </div>
-    <div class="card">
+    <div class="card" id="teloc_card">
       <h3>TELOC Cell Analysis</h3>
       <div class="stat-row">
         <div><small>TOTAL</small><div id="v4_t" class="stat-val">0</div></div>
@@ -79,7 +79,7 @@
   </div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbxMJFPR84kUmTeNV_iOswKZq-oL5pGn44tE4fgRWSkTOAJUBzhFB4d2JyGlBgyQXSZuxA/exec";
+    const API = "https://script.google.com/macros/s/AKfycbzyat2YPleHlWAtK29HaNUmdXitSyuqminlkdT2YuiX_xr86j6azSnSE0L9YnRBnwu6/exec";
 
     async function loadData() {
       const date = document.getElementById('datePicker').value;
