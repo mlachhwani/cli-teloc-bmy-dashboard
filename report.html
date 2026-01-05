@@ -1,34 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>SECR REPORT</title>
+  <title>SECR REPORT VIEW</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
-    table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; }
-    th { background: #003399; color: white; padding: 12px; text-align: left; }
-    td { padding: 10px; border: 1px solid #ddd; font-size: 0.9rem; }
-    tr:nth-child(even) { background: #f9f9f9; }
+    body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    th { background: #003399; color: white; padding: 12px; text-align: left; font-size: 0.9rem; }
+    td { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+    tr:hover { background: #f1f5f9; }
+    .header { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
   </style>
 </head>
 <body>
-  <h2 id="reportTitle">Loading Report...</h2>
-  <div id="tableContainer"></div>
+  <div class="header">
+    <h2 id="title">Loading Report...</h2>
+    <button onclick="window.close()" style="padding:8px 15px; cursor:pointer;">Close Window</button>
+  </div>
+  <div id="tableContent"></div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbxqbDytXe7rQ-E5RtraDuMPAI46YjQxpC44RLiwUf99kKEySTFYwf2otb4AkEiebJ_QIg/exec";
-    const urlParams = new URLSearchParams(window.location.search);
+    const API = "https://script.google.com/macros/s/AKfycbyzGhBSvAec3OBUMAnnLRkuzWfxQw6sVeFBAclmX23KVAtgRMknlRfl-eEdrvZ6xL5ADg/exec";
+    const params = new URLSearchParams(window.location.search);
 
     async function fetchReport() {
-      const res = await fetch(`${API}?action=fullTable&type=${urlParams.get('type')}&date=${urlParams.get('date')}&onlyViolations=${urlParams.get('onlyViolations')}`);
+      document.getElementById('title').innerText = `${params.get('type')} Report - ${params.get('date') || 'Monthly'}`;
+      const url = `${API}?action=fullTable&type=${params.get('type')}&date=${params.get('date')}&onlyViolations=${params.get('onlyViolations')}`;
+      const res = await fetch(url);
       const data = await res.json();
       renderTable(data);
     }
 
     function renderTable(data) {
-      if (!data || data.length === 0) {
-        document.getElementById('tableContainer').innerHTML = "No Records Found";
-        return;
-      }
+      if (!data || data.length < 2) { document.getElementById('tableContent').innerHTML = "<h3>No Records Found</h3>"; return; }
       let html = '<table><thead><tr>';
       data[0].forEach(h => html += `<th>${h}</th>`);
       html += '</tr></thead><tbody>';
@@ -38,9 +41,8 @@
         html += '</tr>';
       });
       html += '</tbody></table>';
-      document.getElementById('tableContainer').innerHTML = html;
+      document.getElementById('tableContent').innerHTML = html;
     }
-
     window.onload = fetchReport;
   </script>
 </body>
