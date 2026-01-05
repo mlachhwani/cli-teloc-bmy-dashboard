@@ -37,7 +37,7 @@
   <div class="chart-container"><canvas id="trendChart"></canvas></div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbzygyqJ3GdfZ5lSzqorAkfzDCn28OjtodqMFd9Gaiu-G1w7bo9ql-6FISp40FUVYFsDvA/exec";
+    const API = "https://script.google.com/macros/s/AKfycbxIkLGVU7ecSRwu_DztX0QQqY9PwN6FliLh-IdcS-zTa87i9IQNF6942VpVNARcyKXUKg/exec";
     let chart;
     async function loadData() {
       const res = await fetch(`${API}?date=${document.getElementById('datePicker').value}`);
