@@ -22,46 +22,32 @@
         .container { max-width: 1500px; margin: 30px auto; padding: 0 25px; }
         .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         
-        /* Interactive Cards */
         .card { 
             background: white; border-radius: 20px; padding: 20px; 
             border-top: 5px solid var(--accent-blue); 
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: default;
+            transition: all 0.4s ease;
         }
-        .card:hover { 
-            transform: translateY(-10px) scale(1.02); 
-            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.15);
-            border-top-width: 8px;
-        }
+        .card:hover { transform: translateY(-8px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
         .card .count { font-size: 2.5rem; font-weight: 800; color: var(--header-bg); margin: 10px 0; display: block; }
-        
-        /* Graph Interaction */
-        .graph-area { 
-            height: 160px; cursor: zoom-in; background: #fff; 
-            margin-bottom: 15px; border-radius: 10px; padding: 5px;
-            transition: background 0.3s;
-        }
-        .graph-area:hover { background: #f8fafc; }
+        .graph-area { height: 160px; cursor: zoom-in; background: #fff; border-radius: 10px; }
 
         .performer-section { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 30px; }
         .icon-btn { background: var(--header-bg); color: white; padding: 20px 10px; border-radius: 15px; text-align: center; cursor: pointer; transition: 0.3s; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.1); }
         .icon-btn:hover { background: #1e293b; transform: scale(1.05); border-color: var(--accent-blue); }
         .icon-btn b { display: block; margin-bottom: 5px; font-size: 0.85rem; color: #60a5fa; }
 
+        /* Modal & Table Fix */
         .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(8px); }
         .modal-content { background: white; width: 95%; max-height: 90vh; border-radius: 20px; padding: 30px; overflow-y: auto; position: relative; }
         
-        /* Darker Table Lines */
-        table { width: 100%; border-collapse: collapse; text-align: center; margin-top: 10px; border: 2px solid #475569; }
-        th { padding: 12px; background: #334155; border: 2px solid #475569; font-size: 0.75rem; font-weight: 800; color: white; }
-        td { padding: 10px; border: 1.5px solid #64748b; font-size: 0.8rem; font-weight: 600; color: #1e293b; }
+        table { width: 100%; border-collapse: collapse; text-align: center; margin-top: 10px; }
+        th { padding: 12px; background: #334155; border: 2px solid #1e293b; font-size: 0.75rem; font-weight: 800; color: white; }
+        td { padding: 10px; border: 2px solid #64748b; font-size: 0.8rem; font-weight: 600; color: #1e293b; }
         tr:nth-child(even) { background-color: #f1f5f9; }
-        tr:hover { background-color: #e2e8f0; }
 
         .dl-group { margin-bottom: 15px; display: flex; gap: 10px; }
-        .dl-btn { padding: 8px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; font-size: 0.7rem; color: white; }
+        .btn-act { padding: 8px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; color: white; font-size: 0.7rem; }
     </style>
 </head>
 <body>
@@ -75,7 +61,7 @@
         </div>
     </div>
     <div style="display:flex; gap:10px;">
-        <input type="date" id="globalDate" onchange="refreshDashboard()" style="padding:8px; border-radius:8px; border:1px solid #cbd5e1;">
+        <input type="date" id="globalDate" onchange="refreshDashboard()" style="padding:8px; border-radius:8px;">
         <button onclick="resetToMonthly()" style="padding:8px 15px; border-radius:8px; background:var(--accent-blue); color:white; border:none; cursor:pointer; font-weight:700;">Full Month</button>
     </div>
 </header>
@@ -92,11 +78,11 @@
 
 <div class="modal" id="dataModal">
     <div class="modal-content">
-        <span onclick="closeModal()" style="float:right; cursor:pointer; font-size:2.5rem; font-weight:bold; color:#64748b;">&times;</span>
-        <h2 id="modalTitle" style="margin-top:0; border-bottom:3px solid var(--accent-blue); padding-bottom:10px;">Report</h2>
+        <span onclick="closeModal()" style="float:right; cursor:pointer; font-size:2.5rem; font-weight:bold;">&times;</span>
+        <h2 id="modalTitle">Report</h2>
         <div id="dlGroup" class="dl-group" style="display:none;">
-            <button class="dl-btn" style="background:#be123c;" onclick="exportPDF()">Download PDF</button>
-            <button class="dl-btn" style="background:#15803d;" onclick="exportExcel()">Download Excel</button>
+            <button class="btn-act" style="background:#be123c;" onclick="exportPDF()">Download PDF</button>
+            <button class="btn-act" style="background:#15803d;" onclick="exportExcel()">Download Excel</button>
         </div>
         <div id="modalExtra"></div>
         <div id="tableContainer"></div>
@@ -130,12 +116,12 @@
         const cats = [{id:'SPM',t:'SPM / RTIS Analysis'}, {id:'CV',t:'CVVRS Analysis'}, {id:'TL',t:'TELOC CELL Audit'}, {id:'BK',t:'Bulk Auto-Analysis'}];
         document.getElementById('mainGrid').innerHTML = cats.map(c => `
             <div class="card">
-                <h3>${c.t}</h3>
+                <h3 style="font-size:0.7rem; color:#64748b; font-weight:800; text-transform:uppercase;">${c.t}</h3>
                 <span class="count" id="count${c.id}">0</span>
                 <div class="graph-area" onclick="zoomGraph('${c.id}')"><canvas id="chart${c.id}"></canvas></div>
                 <div style="display:flex; gap:8px; margin-top:10px;">
-                    <button class="dl-btn" style="background:#0f172a; flex:1;" onclick="openDataWindow('${c.id}', false)">DETAILS</button>
-                    <button class="dl-btn" style="background:#fee2e2; color:#dc2626; flex:1;" onclick="openDataWindow('${c.id}', true)">VIOLATIONS</button>
+                    <button class="btn-act" style="background:#0f172a; flex:1;" onclick="openDataWindow('${c.id}', false)">DETAILS</button>
+                    <button class="btn-act" style="background:#fee2e2; color:#dc2626; flex:1;" onclick="openDataWindow('${c.id}', true)">VIOLATIONS</button>
                 </div>
             </div>`).join('');
     }
@@ -143,71 +129,64 @@
     function renderChart(canvasId, data, isBulk, isZoomed = false) {
         const ctx = document.getElementById(canvasId).getContext('2d');
         if (activeCharts[canvasId]) activeCharts[canvasId].destroy();
-
         const dates = [...new Set(data.map(d => d[isBulk ? 0 : 2]))].sort();
         const totals = dates.map(d => isBulk ? (parseInt(data.find(r => r[0] === d)?.[1]) || 0) : data.filter(r => r[2] === d).length);
         const vios = dates.map(d => isBulk ? (parseInt(data.find(r => r[0] === d)?.[2]) || 0) : data.filter(r => r[2] === d && r[11] && r[11].toUpperCase() !== 'NIL').length);
-
         activeCharts[canvasId] = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: dates.map(d => d.split('-')[2]),
-                datasets: [
-                    { label: 'Violations', data: vios, backgroundColor: '#dc2626', barThickness: isZoomed ? 30 : 6 },
-                    { label: 'Total', data: totals, backgroundColor: '#cbd5e1', barThickness: isZoomed ? 30 : 6 }
-                ]
-            },
-            options: {
-                plugins: {
-                    legend: { display: false },
-                    datalabels: {
-                        anchor: 'end', align: 'top', color: '#1e293b', font: { weight: '800', size: isZoomed ? 12 : 9 },
-                        display: (ctx) => ctx.dataset.label === 'Total' && ctx.dataset.data[ctx.dataIndex] > 0
-                    }
-                },
-                scales: { 
-                    x: { stacked: true, grid: { display: false } }, 
-                    y: { display: true, beginAtZero: true, grid: { color: '#e2e8f0' }, ticks: { font: { weight: 'bold' } } } 
-                },
-                maintainAspectRatio: false
-            }
+            data: { labels: dates.map(d => d.split('-')[2]), datasets: [{ label: 'Vio', data: vios, backgroundColor: '#dc2626', barThickness: isZoomed ? 30 : 6 }, { label: 'Total', data: totals, backgroundColor: '#cbd5e1', barThickness: isZoomed ? 30 : 6 }] },
+            options: { plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top', font: { weight: '800', size: isZoomed ? 12 : 9 }, display: (c) => c.dataset.label === 'Total' && c.dataset.data[c.dataIndex] > 0 } }, scales: { y: { display: true, beginAtZero: true } }, maintainAspectRatio: false }
         });
     }
 
     function zoomGraph(cat) {
-        const modal = document.getElementById('dataModal');
-        modal.style.display = 'flex';
+        const modal = document.getElementById('dataModal'); modal.style.display = 'flex';
         document.getElementById('dlGroup').style.display = 'none';
-        document.getElementById('modalTitle').innerText = `Detailed Trend: ${cat}`;
-        document.getElementById('modalExtra').innerHTML = `<div style="height:450px; width:100%; margin-top:20px;"><canvas id="zoomedChart"></canvas></div>`;
+        document.getElementById('modalExtra').innerHTML = `<div style="height:450px; width:100%;"><canvas id="zoomedChart"></canvas></div>`;
         document.getElementById('tableContainer').innerHTML = "";
-        
         const dbKey = cat === 'CV' ? 'CVVRS' : cat === 'TL' ? 'TELOC' : (cat === 'BK' ? 'BULK' : 'SPM');
         setTimeout(() => renderChart('zoomedChart', database[dbKey], cat === 'BK', true), 100);
     }
 
     function openDataWindow(cat, onlyVios) {
-        document.getElementById('dataModal').style.display = 'flex';
+        const modal = document.getElementById('dataModal'); modal.style.display = 'flex';
         document.getElementById('modalExtra').innerHTML = "";
         document.getElementById('dlGroup').style.display = 'flex';
-        const dbKey = cat === 'CV' ? 'CVVRS' : cat === 'TL' ? 'TELOC' : (cat === 'BK' ? 'BULK_VIO' : 'SPM');
+        const dbKey = cat === 'BK' ? 'BULK_VIO' : (cat === 'CV' ? 'CVVRS' : cat === 'TL' ? 'TELOC' : 'SPM');
         const selDate = document.getElementById('globalDate').value;
         let filtered = database[dbKey];
         if (selDate) filtered = filtered.filter(d => d[dbKey === 'BULK_VIO' ? 0 : 2] === selDate);
         if (onlyVios && dbKey !== 'BULK_VIO') filtered = filtered.filter(d => d[11] && d[11].toUpperCase() !== 'NIL');
         
-        currentHeaders = dbKey === 'BULK_VIO' ? ["DATE", "LOCO", "STN", "TIME", "SPD", "ASPECT", "LP NAME", "TRAIN"] : ["SN", "CLI", "ANL_DATE", "WRK_DATE", "TRAIN", "LOCO", "LP", "ALP", "REMARK"];
+        currentHeaders = dbKey === 'BULK_VIO' ? ["DATE", "LOCO", "STN", "TIME", "SPD", "ASPECT", "LP NAME", "TRAIN", "ACTION"] : ["SN", "CLI", "ANL_DATE", "WRK_DATE", "TRAIN", "LOCO", "LP", "ALP", "REMARK"];
         currentFilteredData = filtered.map(r => r.slice(0, currentHeaders.length));
-        
-        document.getElementById('modalTitle').innerText = `${cat} ${onlyVios ? 'VIOLATIONS' : 'FULL REPORT'}`;
         document.getElementById('tableContainer').innerHTML = `<table><thead><tr>${currentHeaders.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${currentFilteredData.map(r => `<tr>${r.map(c => `<td>${c || '-'}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    }
+
+    function openMerit(type, rank) {
+        const modal = document.getElementById('dataModal'); modal.style.display = 'flex';
+        document.getElementById('modalExtra').innerHTML = "";
+        document.getElementById('dlGroup').style.display = 'flex';
+        const stats = {};
+        [...database.SPM, ...database.CVVRS, ...database.TELOC].forEach(d => {
+            const name = type === 'CLI' ? d[1] : d[9];
+            if (!name || name === '-' || name.toUpperCase().includes("TELOC CELL")) return;
+            if (!stats[name]) stats[name] = { count: 0, vios: 0 };
+            stats[name].count++; if (d[11] && d[11].toUpperCase() !== 'NIL') stats[name].vios++;
+        });
+        let sorted = Object.entries(stats).sort((a, b) => { 
+            const rA = a[1].vios / a[1].count, rB = b[1].vios / b[1].count; 
+            return (rank === 'BEST') ? (type === 'LP' ? rA - rB : b[1].count - a[1].count) : (type === 'LP' ? rB - rA : a[1].count - b[1].count); 
+        }).slice(0, 5);
+        currentHeaders = ["RANK", "NAME", "TOTAL AUDITS", "VIOLATIONS"];
+        currentFilteredData = sorted.map((item, idx) => [`#${idx+1}`, item[0], item[1].count, item[1].vios]);
+        document.getElementById('tableContainer').innerHTML = `<table><thead><tr>${currentHeaders.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${currentFilteredData.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
     }
 
     function refreshDashboard() {
         ['SPM', 'CV', 'TL'].forEach(k => {
             const dbKey = k === 'CV' ? 'CVVRS' : k === 'TL' ? 'TELOC' : 'SPM';
-            const selDate = document.getElementById('globalDate').value;
-            document.getElementById(`count${k}`).innerText = selDate ? database[dbKey].filter(d => d[2] === selDate).length : database[dbKey].length;
+            document.getElementById(`count${k}`).innerText = document.getElementById('globalDate').value ? database[dbKey].filter(d => d[2] === document.getElementById('globalDate').value).length : database[dbKey].length;
             renderChart(`chart${k}`, database[dbKey], false);
         });
         const bTot = document.getElementById('globalDate').value ? (database.BULK.find(d => d[0] === document.getElementById('globalDate').value)?.[1] || 0) : database.BULK.reduce((s, r) => s + (parseInt(r[1]) || 0), 0);
@@ -215,11 +194,10 @@
         renderChart('chartBK', database.BULK, true);
     }
 
-    function closeModal() { document.getElementById('dataModal').style.display = 'none'; if(activeCharts['zoomedChart']) activeCharts['zoomedChart'].destroy(); }
+    function closeModal() { document.getElementById('dataModal').style.display = 'none'; }
     function resetToMonthly() { document.getElementById('globalDate').value = ""; refreshDashboard(); }
-    
     function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentFilteredData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Report"); XLSX.writeFile(wb, "SECR_Report.xlsx"); }
-    function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4'); doc.autoTable({ head: [currentHeaders], body: currentFilteredData, theme: 'grid', styles: { fontSize: 7 } }); doc.save("SECR_Report.pdf"); }
+    function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4'); doc.autoTable({ head: [currentHeaders], body: currentFilteredData, theme: 'grid' }); doc.save("SECR_Report.pdf"); }
 </script>
 </body>
 </html>
