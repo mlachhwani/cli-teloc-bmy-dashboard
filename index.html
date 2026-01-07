@@ -11,58 +11,51 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #f8fafc; --header-bg: #0f172a; --accent-blue: #3b82f6; --danger: #ef4444; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); margin: 0; color: #1e293b; overflow-x: hidden; }
-        header { background: var(--header-bg); padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        :root { --bg: #f1f5f9; --header-bg: #0f172a; --accent: #3b82f6; --danger: #ef4444; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); margin: 0; color: #1e293b; }
+        header { background: var(--header-bg); padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .main-title { font-weight: 800; font-size: 1.4rem; background: linear-gradient(to right, #60a5fa, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .container { max-width: 1600px; margin: 25px auto; padding: 0 20px; }
+        .container { max-width: 1500px; margin: 30px auto; padding: 0 20px; }
         .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .card { background: white; border-radius: 20px; padding: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.3s; position: relative; overflow: hidden; }
-        .card:hover { transform: translateY(-5px); border-color: var(--accent-blue); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-        .card .count { font-size: 2.8rem; font-weight: 800; color: var(--header-bg); line-height: 1; margin: 10px 0; }
-        .graph-container { height: 160px; width: 100%; cursor: pointer; position: relative; }
-        .search-row { display: flex; gap: 12px; margin-bottom: 30px; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-        .search-row input { flex: 1; padding: 12px 20px; border-radius: 10px; border: 2px solid #e2e8f0; font-weight: 600; font-size: 1rem; outline: none; }
-        .performer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 30px; }
-        .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(8px); }
-        .modal-content { background: white; width: 95%; max-height: 92vh; border-radius: 24px; padding: 30px; overflow-y: auto; position: relative; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; border-radius: 12px; overflow: hidden; }
+        .card { background: white; border-radius: 24px; padding: 22px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: 0.3s; }
+        .card:hover { transform: translateY(-8px); border-color: var(--accent); box-shadow: 0 20px 25px rgba(0,0,0,0.1); }
+        .card .count { font-size: 3rem; font-weight: 800; color: var(--header-bg); margin: 10px 0; display: block; }
+        .graph-box { height: 180px; width: 100%; cursor: zoom-in; margin: 15px 0; background: #fdfdfd; border-radius: 12px; }
+        .performer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 40px; }
+        .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.92); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(10px); }
+        .modal-content { background: white; width: 95%; max-height: 90vh; border-radius: 25px; padding: 35px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: #1e293b; color: white; padding: 15px; font-size: 0.75rem; text-transform: uppercase; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 600; text-align: center; }
-        .btn-act { padding: 12px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; color: white; transition: 0.2s; }
-        .btn-act:hover { opacity: 0.9; transform: scale(0.97); }
-        .zero-audit { color: var(--danger); font-weight: 800; }
+        .btn-act { padding: 12px 20px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; color: white; transition: 0.3s; }
+        .btn-act:hover { opacity: 0.9; transform: scale(0.96); }
+        select, input[type="date"] { padding: 10px; border-radius: 12px; border: 1px solid #cbd5e1; font-weight: 700; background: white; }
     </style>
 </head>
 <body>
 
 <header>
     <div style="display:flex; align-items:center; gap:15px;">
-        <img src="ir_logo.png" style="height:50px;">
-        <div><span class="main-title">SECR RAIPUR</span><br><small style="color:#94a3b8; font-weight:600;">ELECTRICAL (OP) DASHBOARD</small></div>
+        <img src="ir_logo.png" style="height:55px;">
+        <div><span class="main-title">SECR RAIPUR</span><br><small style="color:#94a3b8; font-weight:600;">ELECTRICAL (OP) PERFORMANCE</small></div>
     </div>
     <div style="display:flex; gap:12px; align-items:center;">
-        <select id="monthSelector" onchange="loadNewMonth()" style="padding:10px; border-radius:10px; font-weight:700;">
+        <select id="monthSelector" onchange="loadNewMonth()">
             <option value="2026-01">January 2026</option>
             <option value="2025-12">December 2025</option>
         </select>
-        <input type="date" id="globalDate" onchange="refreshDashboard()" style="padding:9px; border-radius:10px; border:1px solid #cbd5e1;">
-        <button onclick="resetToMonthly()" class="btn-act" style="background:var(--accent-blue)">FULL MONTH</button>
+        <input type="date" id="globalDate" onchange="refreshDashboard()">
+        <button onclick="resetToMonthly()" class="btn-act" style="background:var(--accent)">MONTHLY VIEW</button>
     </div>
 </header>
 
 <div class="container">
-    <div class="search-row">
-        <input type="text" id="globalSearch" placeholder="🔍 Enter Loco, LP Name or CLI Name and hit Search...">
-        <button onclick="executeSearch()" class="btn-act" style="background:#0f172a; min-width:160px;">SEARCH</button>
-    </div>
-    
     <div class="summary-grid" id="mainGrid"></div>
 
     <div class="performer-grid">
-        <button class="btn-act" style="background:#0f172a;" onclick="openMerit('CLI', 'BEST')">🥇 TOP CLIs</button>
-        <button class="btn-act" style="background:#0f172a;" onclick="openMerit('LP', 'BEST')">🏆 TOP LPs</button>
-        <button class="btn-act" style="background:var(--danger);" onclick="openMerit('CLI', 'WORST')">⚠️ TALEENDERS</button>
+        <button class="btn-act" style="background:#0f172a;" onclick="openMerit('CLI', 'BEST')">🥇 TOP 10 CLIs</button>
+        <button class="btn-act" style="background:#0f172a;" onclick="openMerit('LP', 'BEST')">🏆 TOP 10 LPs</button>
+        <button class="btn-act" style="background:var(--danger);" onclick="openMerit('CLI', 'WORST')">⚠️ CLI TALEENDERS</button>
         <button class="btn-act" style="background:var(--danger);" onclick="openMerit('LP', 'WORST')">🔴 LP ATTENTION</button>
     </div>
 </div>
@@ -70,12 +63,12 @@
 <div class="modal" id="dataModal">
     <div class="modal-content">
         <span onclick="closeModal()" style="float:right; cursor:pointer; font-size:2.5rem; color:#64748b;">&times;</span>
-        <h2 id="modalTitle" style="color:#0f172a; font-weight:800; margin:0;">Analysis View</h2>
+        <h2 id="modalTitle" style="color:#0f172a; font-weight:800; margin:0;">Analysis</h2>
         <div id="dlGroup" style="margin:20px 0; display:none; gap:12px;">
             <button class="btn-act" style="background:#be123c;" onclick="exportPDF()">PDF</button>
             <button class="btn-act" style="background:#15803d;" onclick="exportExcel()">EXCEL</button>
         </div>
-        <div id="modalChartContainer" style="height:350px; width:100%; display:none; margin-bottom:20px;">
+        <div id="modalGraphArea" style="height:400px; width:100%; display:none; margin-bottom:20px;">
             <canvas id="zoomedChart"></canvas>
         </div>
         <div id="tableContainer"></div>
@@ -97,7 +90,6 @@
             const [y, m] = selMonth.split('-').map(Number);
             document.getElementById('globalDate').value = `${selMonth}-${new Date(y, m, 0).getDate()}`;
         }
-
         const path = `${ROOT}/data/${selMonth}`;
         await Promise.all([
             fetchCSV(`${path}/spm.csv`, 'SPM'), fetchCSV(`${path}/cvvrs.csv`, 'CVVRS'),
@@ -121,24 +113,24 @@
 
     function initCards() {
         const cats = [
-            {id:'SPM',t:'SPM / RTIS AUDITS', db:'SPM'}, {id:'CV',t:'CVVRS ANALYSIS', db:'CVVRS'}, 
-            {id:'TL',t:'TELOC CELL AUDITS', db:'TELOC'}, {id:'BK',t:'BULK AUTO ANALYSIS', db:'BULK'}
+            {id:'SPM',t:'SPM / RTIS AUDITS'}, {id:'CV',t:'CVVRS ANALYSIS'}, 
+            {id:'TL',t:'TELOC CELL AUDITS'}, {id:'BK',t:'BULK AUTO ANALYSIS'}
         ];
         document.getElementById('mainGrid').innerHTML = cats.map(c => `
             <div class="card">
-                <h3 style="font-size:0.75rem; color:#64748b; font-weight:800; margin:0;">${c.t}</h3>
+                <h3 style="font-size:0.8rem; color:#64748b; font-weight:800; margin:0;">${c.t}</h3>
                 <span class="count" id="count${c.id}">0</span>
-                <div class="graph-container" onclick="zoomGraph('${c.id}')">
+                <div class="graph-box" onclick="zoomGraph('${c.id}')">
                     <canvas id="chart${c.id}"></canvas>
                 </div>
-                <div style="display:flex; gap:8px; margin-top:15px;">
-                    <button class="btn-act" style="background:#1e293b; flex:1; padding:8px; font-size:0.7rem;" onclick="openDataWindow('${c.id}', false)">LIST</button>
-                    <button class="btn-act" style="background:var(--danger); flex:1; padding:8px; font-size:0.7rem;" onclick="openDataWindow('${c.id}', true)">VIOS</button>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button class="btn-act" style="background:#1e293b; flex:1; font-size:0.75rem;" onclick="openDataWindow('${c.id}', false)">LIST</button>
+                    <button class="btn-act" style="background:var(--danger); flex:1; font-size:0.75rem;" onclick="openDataWindow('${c.id}', true)">VIOS</button>
                 </div>
             </div>`).join('');
     }
 
-    function createChart(id, data, isBulk, isZoomed = false) {
+    function draw(id, data, isBulk, isZoomed = false) {
         const ctx = document.getElementById(id).getContext('2d');
         if (activeCharts[id]) activeCharts[id].destroy();
 
@@ -151,20 +143,19 @@
             data: {
                 labels: dates.map(d => d.split('-')[2]),
                 datasets: [
-                    { label: 'Violations', data: vios, backgroundColor: '#ef4444', borderRadius: 5 },
-                    { label: 'Total Audits', data: totals, backgroundColor: '#e2e8f0', borderRadius: 5 }
+                    { label: 'Violations', data: vios, backgroundColor: '#ef4444' },
+                    { label: 'Total', data: totals, backgroundColor: '#e2e8f0' }
                 ]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: { 
                     legend: { display: false },
-                    datalabels: { anchor: 'end', align: 'top', font: { weight: '800', size: isZoomed ? 11 : 8 }, display: (c) => c.dataset.label === 'Total Audits' && c.dataset.data[c.dataIndex] > 0 }
+                    datalabels: { anchor: 'end', align: 'top', font: { weight: '800', size: isZoomed ? 12 : 8 }, display: (c) => c.dataset.label === 'Total' && c.dataset.data[c.dataIndex] > 0 }
                 },
                 scales: { 
                     y: { display: isZoomed, beginAtZero: true }, 
-                    x: { grid: { display: false }, ticks: { font: { weight: '700', size: isZoomed ? 12 : 9 } } }
+                    x: { grid: { display: false }, ticks: { font: { weight: '700' } } }
                 }
             }
         });
@@ -172,13 +163,12 @@
 
     function zoomGraph(cat) {
         document.getElementById('dataModal').style.display = 'flex';
-        document.getElementById('modalTitle').innerText = `Growth Analysis: ${cat}`;
-        document.getElementById('modalChartContainer').style.display = 'block';
+        document.getElementById('modalTitle').innerText = `Full Growth Chart: ${cat}`;
+        document.getElementById('modalGraphArea').style.display = 'block';
         document.getElementById('tableContainer').innerHTML = "";
         document.getElementById('dlGroup').style.display = 'none';
-        
         const dbKey = cat === 'CV' ? 'CVVRS' : cat === 'TL' ? 'TELOC' : (cat === 'BK' ? 'BULK' : 'SPM');
-        setTimeout(() => createChart('zoomedChart', database[dbKey], cat === 'BK', true), 300);
+        setTimeout(() => draw('zoomedChart', database[dbKey], cat === 'BK', true), 300);
     }
 
     function refreshDashboard() {
@@ -186,37 +176,17 @@
             const dbKey = k === 'CV' ? 'CVVRS' : k === 'TL' ? 'TELOC' : 'SPM';
             const d = document.getElementById('globalDate').value;
             document.getElementById(`count${k}`).innerText = d ? database[dbKey].filter(x => x[2] === d).length : database[dbKey].length;
-            createChart(`chart${k}`, database[dbKey], false);
+            draw(`chart${k}`, database[dbKey], false);
         });
         const bD = document.getElementById('globalDate').value;
         const bTot = bD ? (database.BULK.find(x => x[0] === bD)?.[1] || 0) : database.BULK.reduce((s, r) => s + (parseInt(r[1]) || 0), 0);
         document.getElementById('countBK').innerText = bTot;
-        createChart('chartBK', database.BULK, true);
+        draw('chartBK', database.BULK, true);
     }
 
     function closeModal() { 
         document.getElementById('dataModal').style.display = 'none'; 
-        document.getElementById('modalChartContainer').style.display = 'none';
-        if(activeCharts['zoomedChart']) activeCharts['zoomedChart'].destroy();
-    }
-
-    // Previous Search, Merit, Window functions remain robustly integrated
-    function executeSearch() {
-        const term = document.getElementById('globalSearch').value.toUpperCase();
-        if(!term) return;
-        const res = [];
-        ['SPM', 'CVVRS', 'TELOC', 'BULK_VIO'].forEach(k => {
-            database[k].forEach(r => {
-                if(r.join('|').toUpperCase().includes(term)) {
-                    if(k === 'BULK_VIO') res.push([r[0], 'AUTO-BULK', r[1], r[12], r[11], r[7], 'BULK']);
-                    else res.push([r[2], r[1], r[7], r[6], r[9], r[11], k]);
-                }
-            });
-        });
-        currentHeaders = ["DATE", "CLI NAME", "LOCO", "TRAIN", "LP NAME", "VIOLATION", "SOURCE"];
-        currentFilteredData = res;
-        document.getElementById('modalChartContainer').style.display = 'none';
-        showTable(`Records for: ${term}`);
+        document.getElementById('modalGraphArea').style.display = 'none';
     }
 
     function openMerit(type, rank) {
@@ -235,9 +205,9 @@
             return b[1].count - a[1].count || a[1].vios - b[1].vios;
         }).slice(0, 15);
         currentHeaders = ["RANK", "NAME", "AUDITS", "VIOLATIONS"];
-        currentFilteredData = sorted.map((item, i) => [`#${i+1}`, item[1].count === 0 ? `<span class="zero-audit">${item[0]} (PENDING)</span>` : item[0], item[1].count, item[1].vios]);
-        document.getElementById('modalChartContainer').style.display = 'none';
-        showTable(`${rank} ${type} Performance`);
+        currentFilteredData = sorted.map((item, i) => [`#${i+1}`, item[1].count === 0 ? `<span style="color:red; font-weight:800;">${item[0]} (PENDING)</span>` : item[0], item[1].count, item[1].vios]);
+        document.getElementById('modalGraphArea').style.display = 'none';
+        showTable(`${rank} ${type} PERFORMANCE`);
     }
 
     function showTable(title) {
@@ -248,7 +218,7 @@
     }
 
     function openDataWindow(cat, onlyVios) {
-        document.getElementById('modalChartContainer').style.display = 'none';
+        document.getElementById('modalGraphArea').style.display = 'none';
         const dbKey = cat === 'BK' ? 'BULK_VIO' : (cat === 'CV' ? 'CVVRS' : cat === 'TL' ? 'TELOC' : 'SPM');
         const selDate = document.getElementById('globalDate').value;
         let filtered = database[dbKey];
@@ -261,7 +231,7 @@
             currentHeaders = ["CLI", "ANALYSIS DT", "WORK DT", "TRAIN", "LOCO", "LP NAME", "ALP NAME", "VIOLATION"];
             currentFilteredData = filtered.map(r => [r[1], r[2], r[3], r[6], r[7], r[9], r[10], r[11]]);
         }
-        showTable(`${cat} Report`);
+        showTable(`${cat} REPORT`);
     }
 
     function resetToMonthly() { document.getElementById('globalDate').value = ""; refreshDashboard(); }
