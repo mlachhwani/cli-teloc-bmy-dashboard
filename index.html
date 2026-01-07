@@ -11,25 +11,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #f1f5f9; --header-bg: #0f172a; --accent: #3b82f6; --danger: #ef4444; }
+        :root { --bg: #f8fafc; --header-bg: #0f172a; --accent: #3b82f6; --danger: #ef4444; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); margin: 0; color: #1e293b; }
         header { background: var(--header-bg); padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
         .main-title { font-weight: 800; font-size: 1.4rem; background: linear-gradient(to right, #60a5fa, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .container { max-width: 1500px; margin: 30px auto; padding: 0 20px; }
+        .container { max-width: 1550px; margin: 30px auto; padding: 0 20px; }
         .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .card { background: white; border-radius: 24px; padding: 22px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: 0.3s; }
+        .card { background: white; border-radius: 24px; padding: 22px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: 0.3s; cursor: pointer; }
         .card:hover { transform: translateY(-8px); border-color: var(--accent); box-shadow: 0 20px 25px rgba(0,0,0,0.1); }
-        .card .count { font-size: 3rem; font-weight: 800; color: var(--header-bg); margin: 10px 0; display: block; }
-        .graph-box { height: 180px; width: 100%; cursor: zoom-in; margin: 15px 0; background: #fdfdfd; border-radius: 12px; }
+        .card .count { font-size: 3rem; font-weight: 800; color: var(--header-bg); margin: 5px 0; display: block; }
+        .graph-box { height: 170px; width: 100%; margin: 15px 0; background: #fff; }
         .performer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 40px; }
-        .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.92); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(10px); }
+        .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(10px); }
         .modal-content { background: white; width: 95%; max-height: 90vh; border-radius: 25px; padding: 35px; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th { background: #1e293b; color: white; padding: 15px; font-size: 0.75rem; text-transform: uppercase; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 600; text-align: center; }
         .btn-act { padding: 12px 20px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; color: white; transition: 0.3s; }
-        .btn-act:hover { opacity: 0.9; transform: scale(0.96); }
-        select, input[type="date"] { padding: 10px; border-radius: 12px; border: 1px solid #cbd5e1; font-weight: 700; background: white; }
+        select, input[type="date"] { padding: 10px; border-radius: 12px; border: 1px solid #cbd5e1; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -37,7 +36,7 @@
 <header>
     <div style="display:flex; align-items:center; gap:15px;">
         <img src="ir_logo.png" style="height:55px;">
-        <div><span class="main-title">SECR RAIPUR</span><br><small style="color:#94a3b8; font-weight:600;">ELECTRICAL (OP) PERFORMANCE</small></div>
+        <div><span class="main-title">SECR RAIPUR Dashboard</span><br><small style="color:#94a3b8; font-weight:600;">ELECTRICAL (OP) DEPARTMENT</small></div>
     </div>
     <div style="display:flex; gap:12px; align-items:center;">
         <select id="monthSelector" onchange="loadNewMonth()">
@@ -45,13 +44,12 @@
             <option value="2025-12">December 2025</option>
         </select>
         <input type="date" id="globalDate" onchange="refreshDashboard()">
-        <button onclick="resetToMonthly()" class="btn-act" style="background:var(--accent)">MONTHLY VIEW</button>
+        <button onclick="resetToMonthly()" class="btn-act" style="background:var(--accent)">MONTH VIEW</button>
     </div>
 </header>
 
 <div class="container">
     <div class="summary-grid" id="mainGrid"></div>
-
     <div class="performer-grid">
         <button class="btn-act" style="background:#0f172a;" onclick="openMerit('CLI', 'BEST')">🥇 TOP 10 CLIs</button>
         <button class="btn-act" style="background:#0f172a;" onclick="openMerit('LP', 'BEST')">🏆 TOP 10 LPs</button>
@@ -68,9 +66,7 @@
             <button class="btn-act" style="background:#be123c;" onclick="exportPDF()">PDF</button>
             <button class="btn-act" style="background:#15803d;" onclick="exportExcel()">EXCEL</button>
         </div>
-        <div id="modalGraphArea" style="height:400px; width:100%; display:none; margin-bottom:20px;">
-            <canvas id="zoomedChart"></canvas>
-        </div>
+        <div id="modalGraphArea" style="height:400px; width:100%; display:none; margin-bottom:20px;"><canvas id="zoomedChart"></canvas></div>
         <div id="tableContainer"></div>
     </div>
 </div>
@@ -119,17 +115,17 @@
                 <span class="count" id="count${c.id}">0</span>
                 <div class="graph-box" onclick="zoomGraph('${c.id}')"><canvas id="chart${c.id}"></canvas></div>
                 <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button class="btn-act" style="background:#1e293b; flex:1; font-size:0.75rem;" onclick="openDataWindow('${c.id}', false)">LIST</button>
-                    <button class="btn-act" style="background:var(--danger); flex:1; font-size:0.75rem;" onclick="openDataWindow('${c.id}', true)">VIOS</button>
+                    <button class="btn-act" style="background:#1e293b; flex:1; font-size:0.75rem;" onclick="event.stopPropagation(); openDataWindow('${c.id}', false)">LIST</button>
+                    <button class="btn-act" style="background:var(--danger); flex:1; font-size:0.75rem;" onclick="event.stopPropagation(); openDataWindow('${c.id}', true)">VIOS</button>
                 </div>
             </div>`).join('');
     }
 
-    function draw(id, data, isBulk, isZoomed = false) {
+    function drawChart(id, data, isBulk, isZoomed = false) {
         const canvas = document.getElementById(id);
         if(!canvas) return;
         const ctx = canvas.getContext('2d');
-        if (activeCharts[id]) { activeCharts[id].destroy(); }
+        if (activeCharts[id]) activeCharts[id].destroy();
 
         const dates = [...new Set(data.map(d => d[isBulk ? 0 : 2]))].filter(x => x).sort();
         const totals = dates.map(d => isBulk ? (parseInt(data.find(r => r[0] === d)?.[1]) || 0) : data.filter(r => r[2] === d).length);
@@ -141,15 +137,12 @@
                 labels: dates.map(d => d.split('-')[2]),
                 datasets: [
                     { label: 'Violations', data: vios, backgroundColor: '#ef4444' },
-                    { label: 'Total', data: totals, backgroundColor: '#e2e8f0' }
+                    { label: 'Total Audits', data: totals, backgroundColor: '#cbd5e1' }
                 ]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: false },
-                    datalabels: { anchor: 'end', align: 'top', font: { weight: '800', size: isZoomed ? 12 : 8 }, display: (c) => c.dataset.label === 'Total' && c.dataset.data[c.dataIndex] > 0 }
-                },
+                plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top', font: { weight: '800', size: isZoomed ? 11 : 8 }, display: (c) => c.dataset.label === 'Total Audits' && c.dataset.data[c.dataIndex] > 0 } },
                 scales: { y: { display: isZoomed, beginAtZero: true }, x: { grid: { display: false }, ticks: { font: { weight: '700' } } } }
             }
         });
@@ -160,12 +153,12 @@
             const dbKey = k === 'CV' ? 'CVVRS' : k === 'TL' ? 'TELOC' : 'SPM';
             const d = document.getElementById('globalDate').value;
             document.getElementById(`count${k}`).innerText = d ? database[dbKey].filter(x => x[2] === d).length : database[dbKey].length;
-            draw(`chart${k}`, database[dbKey], false);
+            drawChart(`chart${k}`, database[dbKey], false);
         });
         const bD = document.getElementById('globalDate').value;
         const bData = database.BULK;
         document.getElementById('countBK').innerText = bD ? (bData.find(x => x[0] === bD)?.[1] || 0) : bData.reduce((s, r) => s + (parseInt(r[1]) || 0), 0);
-        draw('chartBK', bData, true);
+        drawChart('chartBK', bData, true);
     }
 
     function openMerit(type, rank) {
@@ -181,37 +174,33 @@
         });
 
         let sorted = Object.entries(stats).sort((a,b) => {
+            const rateA = a[1].count > 0 ? a[1].vios / a[1].count : 0;
+            const rateB = b[1].count > 0 ? b[1].vios / b[1].count : 0;
             if(rank === 'WORST') {
-                // Priority 1: High Violation Count. Priority 2: High Audit count (to avoid 1/1 ranking above 2/2)
-                return b[1].vios - a[1].vios || b[1].count - a[1].count;
+                if(type === 'CLI' && a[1].count === 0) return -1; // Taleenders logic
+                // PRIMARY: Violation Rate, SECONDARY: Total Trips
+                return rateB - rateA || b[1].count - a[1].count;
             }
             return b[1].count - a[1].count || a[1].vios - b[1].vios;
         });
 
-        // Special logic for CLI Taleenders: Push 0 audit ones to top
-        if(type === 'CLI' && rank === 'WORST') {
-            sorted = sorted.sort((a,b) => a[1].count - b[1].count || b[1].vios - a[1].vios);
-        }
-
-        currentHeaders = ["RANK", "NAME", "AUDITS", "VIOLATIONS"];
-        currentFilteredData = sorted.slice(0, 15).map((item, i) => [
-            `#${i+1}`, 
-            item[1].count === 0 ? `<span style="color:red; font-weight:800;">${item[0]} (PENDING)</span>` : item[0], 
-            item[1].count, 
-            item[1].vios
-        ]);
+        currentHeaders = ["RANK", "NAME", "AUDITS / TRIPS", "VIOLATIONS", "RATE"];
+        currentFilteredData = sorted.slice(0, 15).map((item, i) => {
+            const rate = item[1].count > 0 ? (item[1].vios / item[1].count).toFixed(2) : "0.00";
+            return [`#${i+1}`, item[1].count === 0 ? `<span style="color:red; font-weight:800;">${item[0]} (PENDING)</span>` : item[0], item[1].count, item[1].vios, rate];
+        });
         document.getElementById('modalGraphArea').style.display = 'none';
         showTable(`${rank} ${type} PERFORMANCE`);
     }
 
     function zoomGraph(cat) {
         document.getElementById('dataModal').style.display = 'flex';
-        document.getElementById('modalTitle').innerText = `Full Growth Chart: ${cat}`;
+        document.getElementById('modalTitle').innerText = `Growth Analysis: ${cat}`;
         document.getElementById('modalGraphArea').style.display = 'block';
         document.getElementById('tableContainer').innerHTML = "";
         document.getElementById('dlGroup').style.display = 'none';
         const dbKey = cat === 'CV' ? 'CVVRS' : cat === 'TL' ? 'TELOC' : (cat === 'BK' ? 'BULK' : 'SPM');
-        setTimeout(() => draw('zoomedChart', database[dbKey], cat === 'BK', true), 300);
+        setTimeout(() => drawChart('zoomedChart', database[dbKey], cat === 'BK', true), 300);
     }
 
     function showTable(title) {
@@ -228,12 +217,12 @@
         let filtered = database[dbKey];
         if (selDate) filtered = filtered.filter(d => d[0] === selDate || d[2] === selDate);
         if (dbKey === 'BULK_VIO') {
-            currentHeaders = ["DATE", "LOCO", "STATION", "SPEED", "ASPECT", "LP NAME", "TRAIN", "ALP NAME"];
-            currentFilteredData = filtered.map(r => [r[0], r[1], r[2], r[5], r[7], r[11], r[12], r[15]]);
+            currentHeaders = ["DATE", "LOCO", "STATION", "SPEED", "ASPECT", "LP NAME", "TRAIN"];
+            currentFilteredData = filtered.map(r => [r[0], r[1], r[2], r[5], r[7], r[11], r[12]]);
         } else {
             if (onlyVios) filtered = filtered.filter(d => d[11] && d[11].toUpperCase() !== 'NIL');
-            currentHeaders = ["CLI", "ANALYSIS DT", "WORK DT", "TRAIN", "LOCO", "LP NAME", "ALP NAME", "VIOLATION"];
-            currentFilteredData = filtered.map(r => [r[1], r[2], r[3], r[6], r[7], r[9], r[10], r[11]]);
+            currentHeaders = ["CLI", "WORK DT", "TRAIN", "LOCO", "LP NAME", "VIOLATION"];
+            currentFilteredData = filtered.map(r => [r[1], r[3], r[6], r[7], r[9], r[11]]);
         }
         showTable(`${cat} REPORT`);
     }
