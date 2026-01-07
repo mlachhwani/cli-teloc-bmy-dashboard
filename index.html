@@ -25,10 +25,11 @@
         .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(10px); }
         .modal-content { background: white; width: 95%; max-height: 90vh; border-radius: 25px; padding: 35px; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: #1e293b; color: white; padding: 15px; font-size: 0.75rem; text-transform: uppercase; }
+        th { background: #1e293b; color: white; padding: 15px; font-size: 0.75rem; text-transform: uppercase; text-align: center; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 600; text-align: center; }
         .btn-act { padding: 12px 20px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; color: white; transition: 0.3s; }
         select, input[type="date"] { padding: 10px; border-radius: 12px; border: 1px solid #cbd5e1; font-weight: 700; }
+        .pending { color: var(--danger); font-weight: 800; }
     </style>
 </head>
 <body>
@@ -36,7 +37,7 @@
 <header>
     <div style="display:flex; align-items:center; gap:15px;">
         <img src="ir_logo.png" style="height:55px;">
-        <div><span class="main-title">SECR RAIPUR Dashboard</span><br><small style="color:#94a3b8; font-weight:600;">ELECTRICAL (OP) DEPARTMENT</small></div>
+        <div><span class="main-title">SECR RAIPUR</span><br><small style="color:#94a3b8; font-weight:600;">ELECTRICAL (OP) DASHBOARD</small></div>
     </div>
     <div style="display:flex; gap:12px; align-items:center;">
         <select id="monthSelector" onchange="loadNewMonth()">
@@ -44,7 +45,7 @@
             <option value="2025-12">December 2025</option>
         </select>
         <input type="date" id="globalDate" onchange="refreshDashboard()">
-        <button onclick="resetToMonthly()" class="btn-act" style="background:var(--accent)">MONTH VIEW</button>
+        <button onclick="resetToMonthly()" class="btn-act" style="background:var(--accent)">MONTHLY VIEW</button>
     </div>
 </header>
 
@@ -74,7 +75,7 @@
 <script>
     Chart.register(ChartDataLabels);
     const ROOT = "https://raw.githubusercontent.com/mlachhwani/cli-teloc-bmy-dashboard/main";
-    let database = { SPM: [], CVVRS: [], TELOC: [], BULK: [], BULK_VIO: [], MASTER_CLI: [] };
+    let database = { SPM: [], CVVRS: [], TELOC: [], BULK: [], MASTER_CLI: [] };
     let activeCharts = {};
 
     async function loadNewMonth() {
@@ -90,7 +91,6 @@
         await Promise.all([
             fetchCSV(`${path}/spm.csv`, 'SPM'), fetchCSV(`${path}/cvvrs.csv`, 'CVVRS'),
             fetchCSV(`${path}/teloc_daily.csv`, 'TELOC'), fetchCSV(`${path}/bulk_analysis.csv`, 'BULK'),
-            fetchCSV(`${path}/bulk_violation_details.csv`, 'BULK_VIO'),
             fetchCSV(`${ROOT}/cli_master.csv`, 'MASTER_CLI')
         ]);
         initCards(); refreshDashboard();
@@ -110,11 +110,11 @@
     function initCards() {
         const cats = [{id:'SPM',t:'SPM / RTIS AUDITS'}, {id:'CV',t:'CVVRS ANALYSIS'}, {id:'TL',t:'TELOC CELL AUDITS'}, {id:'BK',t:'BULK AUTO ANALYSIS'}];
         document.getElementById('mainGrid').innerHTML = cats.map(c => `
-            <div class="card">
+            <div class="card" onclick="zoomGraph('${c.id}')">
                 <h3 style="font-size:0.8rem; color:#64748b; font-weight:800; margin:0;">${c.t}</h3>
                 <span class="count" id="count${c.id}">0</span>
-                <div class="graph-box" onclick="zoomGraph('${c.id}')"><canvas id="chart${c.id}"></canvas></div>
-                <div style="display:flex; gap:10px; margin-top:10px;">
+                <div class="graph-box"><canvas id="chart${c.id}"></canvas></div>
+                <div style="display:flex; gap:10px;">
                     <button class="btn-act" style="background:#1e293b; flex:1; font-size:0.75rem;" onclick="event.stopPropagation(); openDataWindow('${c.id}', false)">LIST</button>
                     <button class="btn-act" style="background:var(--danger); flex:1; font-size:0.75rem;" onclick="event.stopPropagation(); openDataWindow('${c.id}', true)">VIOS</button>
                 </div>
@@ -127,9 +127,12 @@
         const ctx = canvas.getContext('2d');
         if (activeCharts[id]) activeCharts[id].destroy();
 
-        const dates = [...new Set(data.map(d => d[isBulk ? 0 : 2]))].filter(x => x).sort();
-        const totals = dates.map(d => isBulk ? (parseInt(data.find(r => r[0] === d)?.[1]) || 0) : data.filter(r => r[2] === d).length);
-        const vios = dates.map(d => isBulk ? (parseInt(data.find(r => r[0] === d)?.[2]) || 0) : data.filter(r => r[2] === d && r[11] && r[11].toUpperCase() !== 'NIL').length);
+        // Data processing for charts (Using index 2 for Date in all, Index 0 for Bulk)
+        const dateIdx = isBulk ? 0 : 2;
+        const dates = [...new Set(data.map(d => d[dateIdx]))].filter(x => x && x.includes('-')).sort();
+        
+        const totals = dates.map(d => isBulk ? (parseInt(data.find(r => r[0] === d)?.[1]) || 0) : data.filter(r => r[dateIdx] === d).length);
+        const vios = dates.map(d => isBulk ? (parseInt(data.find(r => r[0] === d)?.[2]) || 0) : data.filter(r => r[dateIdx] === d && r[11] && r[11].toUpperCase() !== 'NIL').length);
 
         activeCharts[id] = new Chart(ctx, {
             type: 'bar',
@@ -137,13 +140,19 @@
                 labels: dates.map(d => d.split('-')[2]),
                 datasets: [
                     { label: 'Violations', data: vios, backgroundColor: '#ef4444' },
-                    { label: 'Total Audits', data: totals, backgroundColor: '#cbd5e1' }
+                    { label: 'Total', data: totals, backgroundColor: '#cbd5e1' }
                 ]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top', font: { weight: '800', size: isZoomed ? 11 : 8 }, display: (c) => c.dataset.label === 'Total Audits' && c.dataset.data[c.dataIndex] > 0 } },
-                scales: { y: { display: isZoomed, beginAtZero: true }, x: { grid: { display: false }, ticks: { font: { weight: '700' } } } }
+                plugins: { 
+                    legend: { display: false },
+                    datalabels: { anchor: 'end', align: 'top', font: { weight: '800', size: isZoomed ? 11 : 8 }, display: (c) => c.dataset.label === 'Total' && c.dataset.data[c.dataIndex] > 0 }
+                },
+                scales: { 
+                    y: { display: isZoomed, beginAtZero: true }, 
+                    x: { grid: { display: false }, ticks: { font: { weight: '700' } } }
+                }
             }
         });
     }
@@ -163,9 +172,11 @@
 
     function openMerit(type, rank) {
         const stats = {};
+        // Initialize from master for CLI
         if(type === 'CLI' && database.MASTER_CLI.length > 0) {
             database.MASTER_CLI.forEach(m => { if(m[0]) stats[m[0].trim()] = { count: 0, vios: 0 }; });
         }
+        
         [...database.SPM, ...database.CVVRS, ...database.TELOC].forEach(d => {
             const name = (type === 'CLI' ? d[1] : d[9])?.trim();
             if(!name || name === '-' || name.toUpperCase().includes("TELOC CELL")) return;
@@ -173,21 +184,29 @@
             stats[name].count++; if(d[11] && d[11].toUpperCase() !== 'NIL') stats[name].vios++;
         });
 
-        let sorted = Object.entries(stats).sort((a,b) => {
-            const rateA = a[1].count > 0 ? a[1].vios / a[1].count : 0;
-            const rateB = b[1].count > 0 ? b[1].vios / b[1].count : 0;
-            if(rank === 'WORST') {
-                if(type === 'CLI' && a[1].count === 0) return -1; // Taleenders logic
-                // PRIMARY: Violation Rate, SECONDARY: Total Trips
-                return rateB - rateA || b[1].count - a[1].count;
-            }
-            return b[1].count - a[1].count || a[1].vios - b[1].vios;
-        });
+        let sorted = Object.entries(stats);
+        
+        if (type === 'LP') {
+            // APPLY MUKESH LP FORMULA: Rate (Desc) > Trips (Desc)
+            sorted.sort((a,b) => {
+                const rateA = a[1].count > 0 ? a[1].vios / a[1].count : 0;
+                const rateB = b[1].count > 0 ? b[1].vios / b[1].count : 0;
+                if (rank === 'WORST') return rateB - rateA || b[1].count - a[1].count;
+                return b[1].count - a[1].count || a[1].vios - b[1].vios;
+            });
+        } else {
+            // CLI LOGIC: Analysis Count Basis
+            sorted.sort((a,b) => {
+                if (rank === 'WORST') return a[1].count - b[1].count || b[1].vios - a[1].vios;
+                return b[1].count - a[1].count || a[1].vios - b[1].vios;
+            });
+        }
 
         currentHeaders = ["RANK", "NAME", "AUDITS / TRIPS", "VIOLATIONS", "RATE"];
         currentFilteredData = sorted.slice(0, 15).map((item, i) => {
             const rate = item[1].count > 0 ? (item[1].vios / item[1].count).toFixed(2) : "0.00";
-            return [`#${i+1}`, item[1].count === 0 ? `<span style="color:red; font-weight:800;">${item[0]} (PENDING)</span>` : item[0], item[1].count, item[1].vios, rate];
+            const nameDisp = item[1].count === 0 ? `<span class="pending">${item[0]} (PENDING)</span>` : item[0];
+            return [`#${i+1}`, nameDisp, item[1].count, item[1].vios, rate];
         });
         document.getElementById('modalGraphArea').style.display = 'none';
         showTable(`${rank} ${type} PERFORMANCE`);
@@ -195,7 +214,7 @@
 
     function zoomGraph(cat) {
         document.getElementById('dataModal').style.display = 'flex';
-        document.getElementById('modalTitle').innerText = `Growth Analysis: ${cat}`;
+        document.getElementById('modalTitle').innerText = `Full Growth Analysis: ${cat}`;
         document.getElementById('modalGraphArea').style.display = 'block';
         document.getElementById('tableContainer').innerHTML = "";
         document.getElementById('dlGroup').style.display = 'none';
@@ -212,22 +231,18 @@
 
     function openDataWindow(cat, onlyVios) {
         document.getElementById('modalGraphArea').style.display = 'none';
-        const dbKey = cat === 'BK' ? 'BULK_VIO' : (cat === 'CV' ? 'CVVRS' : cat === 'TL' ? 'TELOC' : 'SPM');
+        const dbKey = cat === 'BK' ? 'BULK' : (cat === 'CV' ? 'CVVRS' : cat === 'TL' ? 'TELOC' : 'SPM');
         const selDate = document.getElementById('globalDate').value;
         let filtered = database[dbKey];
-        if (selDate) filtered = filtered.filter(d => d[0] === selDate || d[2] === selDate);
-        if (dbKey === 'BULK_VIO') {
-            currentHeaders = ["DATE", "LOCO", "STATION", "SPEED", "ASPECT", "LP NAME", "TRAIN"];
-            currentFilteredData = filtered.map(r => [r[0], r[1], r[2], r[5], r[7], r[11], r[12]]);
-        } else {
-            if (onlyVios) filtered = filtered.filter(d => d[11] && d[11].toUpperCase() !== 'NIL');
-            currentHeaders = ["CLI", "WORK DT", "TRAIN", "LOCO", "LP NAME", "VIOLATION"];
-            currentFilteredData = filtered.map(r => [r[1], r[3], r[6], r[7], r[9], r[11]]);
-        }
+        if (selDate) filtered = filtered.filter(d => (cat === 'BK' ? d[0] : d[2]) === selDate);
+        if (onlyVios) filtered = filtered.filter(d => d[11] && d[11].toUpperCase() !== 'NIL');
+        
+        currentHeaders = ["DATE", "CLI", "TRAIN", "LOCO", "LP NAME", "VIOLATION"];
+        currentFilteredData = filtered.map(r => [r[2]||r[0], r[1], r[6]||'-', r[7]||'-', r[9]||'-', r[11]||'-']);
         showTable(`${cat} REPORT`);
     }
 
-    function closeModal() { document.getElementById('dataModal').style.display = 'none'; document.getElementById('modalGraphArea').style.display = 'none'; }
+    function closeModal() { document.getElementById('dataModal').style.display = 'none'; }
     function resetToMonthly() { document.getElementById('globalDate').value = ""; refreshDashboard(); }
     function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentFilteredData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Report"); XLSX.writeFile(wb, "SECR_Report.xlsx"); }
     function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4'); doc.autoTable({ head: [currentHeaders], body: currentFilteredData.map(r => r.map(c => String(c).replace(/<[^>]*>/g, ''))), theme: 'grid' }); doc.save("SECR_Report.pdf"); }
