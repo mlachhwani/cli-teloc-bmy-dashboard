@@ -191,13 +191,13 @@
             sorted.sort((a,b) => {
                 const rateA = a[1].count > 0 ? a[1].vios / a[1].count : 0;
                 const rateB = b[1].count > 0 ? b[1].vios / b[1].count : 0;
-                if (rank === 'WORST') return rateB - rateA || b[1].count - a[1].count;
+                if (rank === 'NEED IMPROVEMENT') return rateB - rateA || b[1].count - a[1].count;
                 return b[1].count - a[1].count || a[1].vios - b[1].vios;
             });
         } else {
             // CLI LOGIC: Analysis Count Basis
             sorted.sort((a,b) => {
-                if (rank === 'WORST') return a[1].count - b[1].count || b[1].vios - a[1].vios;
+                if (rank === 'NEED IMPROVEMENT') return a[1].count - b[1].count || b[1].vios - a[1].vios;
                 return b[1].count - a[1].count || a[1].vios - b[1].vios;
             });
         }
