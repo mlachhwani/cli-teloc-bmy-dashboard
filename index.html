@@ -13,63 +13,67 @@
     <style>
         :root { --bg: #f3f4f6; --header-bg: #0f172a; --accent-blue: #3b82f6; --danger: #be123c; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); margin: 0; color: #1e293b; }
-        header { background: var(--header-bg); padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .main-title { font-weight: 800; font-size: 1.4rem; background: linear-gradient(to right, #60a5fa, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; }
+        header { background: var(--header-bg); padding: 12px 40px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 1000; }
+        .main-title { font-weight: 800; font-size: 1.3rem; background: linear-gradient(to right, #60a5fa, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .container { max-width: 1550px; margin: 25px auto; padding: 0 20px; }
         .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
         .card { background: white; border-radius: 20px; padding: 18px; border-top: 5px solid var(--accent-blue); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .card .count { font-size: 2.6rem; font-weight: 800; color: var(--header-bg); margin: 5px 0; display: block; }
-        .search-box { width: 100%; padding: 16px; border-radius: 15px; border: 2px solid #cbd5e1; margin-bottom: 25px; font-size: 1rem; font-weight: 600; outline: none; transition: 0.3s; }
-        .search-box:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        .card .count { font-size: 2.6rem; font-weight: 800; color: var(--header-bg); display: block; }
+        .graph-area { height: 140px; }
+        .search-row { display: flex; gap: 10px; margin-bottom: 25px; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .search-row input { flex: 1; padding: 10px 15px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 600; }
         .performer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 25px; }
         .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(8px); }
-        .modal-content { background: white; width: 96%; max-height: 90vh; border-radius: 20px; padding: 30px; overflow-y: auto; position: relative; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; border-radius: 10px; overflow: hidden; }
-        th { background: #334155; color: white; padding: 14px; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
-        td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; font-weight: 600; text-align: center; }
-        .btn-act { padding: 12px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; color: white; transition: 0.3s; }
-        .btn-act:hover { opacity: 0.9; transform: translateY(-2px); }
-        .zero-audit { color: var(--danger); font-weight: 800; animation: pulse 2s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        .modal-content { background: white; width: 95%; max-height: 90vh; border-radius: 20px; padding: 30px; overflow-y: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { background: #334155; color: white; padding: 12px; font-size: 0.75rem; text-transform: uppercase; }
+        td { padding: 10px; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; font-weight: 600; text-align: center; }
+        .btn-act { padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; color: white; transition: 0.2s; }
+        .btn-act:hover { opacity: 0.9; transform: scale(0.98); }
+        .zero-audit { color: var(--danger); font-weight: 800; }
+        select, input[type="date"] { padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-weight: 700; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="display:flex; align-items:center; gap:15px;">
-        <img src="ir_logo.png" style="height:55px;">
-        <div><span class="main-title">SECR RAIPUR | ELECTRICAL (OP)</span><br><small style="color:#94a3b8; font-weight:600; letter-spacing:1px;">RAIPUR DIVISION PERFORMANCE TRACKER</small></div>
+    <div style="display:flex; align-items:center; gap:12px;">
+        <img src="ir_logo.png" style="height:50px;">
+        <div><span class="main-title">SECR RAIPUR</span><br><small style="color:#94a3b8;">ELECTRICAL (OP) DEPARTMENT</small></div>
     </div>
-    <div style="display:flex; gap:12px; align-items:center;">
-        <select id="monthSelector" onchange="loadNewMonth()" style="padding:10px; border-radius:10px; font-weight:700; cursor:pointer;">
+    <div style="display:flex; gap:10px; align-items:center;">
+        <select id="monthSelector" onchange="loadNewMonth()">
             <option value="2026-01">January 2026</option>
             <option value="2025-12">December 2025</option>
         </select>
-        <input type="date" id="globalDate" onchange="refreshDashboard()" style="padding:10px; border-radius:10px; border:1px solid #cbd5e1; font-weight:600;">
-        <button onclick="resetToMonthly()" class="btn-act" style="background:var(--accent-blue)">Full Month</button>
+        <input type="date" id="globalDate" onchange="refreshDashboard()">
+        <button onclick="resetToMonthly()" class="btn-act" style="background:var(--accent-blue)">FULL MONTH</button>
     </div>
 </header>
 
 <div class="container">
-    <input type="text" id="globalSearch" class="search-box" placeholder="🔍 Instant Search: Search LP Name, CLI Name, or Loco Number across all audits..." onkeyup="handleSearch(event)">
+    <div class="search-row">
+        <input type="text" id="globalSearch" placeholder="Search Loco, LP, or CLI Name...">
+        <button onclick="executeSearch()" class="btn-act" style="background:#0f172a; width:150px;">FIND RECORD</button>
+    </div>
     
     <div class="summary-grid" id="mainGrid"></div>
 
     <div class="performer-grid">
         <button class="btn-act" style="background:#0f172a;" onclick="openMerit('CLI', 'BEST')">🥇 TOP 10 CLIs</button>
         <button class="btn-act" style="background:#0f172a;" onclick="openMerit('LP', 'BEST')">🏆 TOP 10 LPs</button>
-        <button class="btn-act" style="background:var(--danger);" onclick="openMerit('CLI', 'WORST')">⚠️ CLI TALEENDERS (Critical)</button>
-        <button class="btn-act" style="background:var(--danger);" onclick="openMerit('LP', 'WORST')">🔴 LP NEEDS ATTENTION</button>
+        <button class="btn-act" style="background:var(--danger);" onclick="openMerit('CLI', 'WORST')">⚠️ CLI TALEENDERS</button>
+        <button class="btn-act" style="background:var(--danger);" onclick="openMerit('LP', 'WORST')">🔴 LP ATTENTION</button>
     </div>
 </div>
 
 <div class="modal" id="dataModal">
     <div class="modal-content">
-        <span onclick="closeModal()" style="float:right; cursor:pointer; font-size:2.5rem; line-height:1;">&times;</span>
-        <h2 id="modalTitle" style="margin-top:0; color:var(--header-bg); font-weight:800;">Report View</h2>
-        <div id="dlGroup" style="margin-bottom:20px; display:none; gap:10px;">
-            <button class="btn-act" style="background:#be123c;" onclick="exportPDF()">Download PDF</button>
-            <button class="btn-act" style="background:#15803d;" onclick="exportExcel()">Export Excel</button>
+        <span onclick="closeModal()" style="float:right; cursor:pointer; font-size:2rem;">&times;</span>
+        <h2 id="modalTitle">Analysis</h2>
+        <div id="dlGroup" style="margin-bottom:15px; display:none; gap:10px;">
+            <button class="btn-act" style="background:#be123c;" onclick="exportPDF()">PDF</button>
+            <button class="btn-act" style="background:#15803d;" onclick="exportExcel()">EXCEL</button>
         </div>
         <div id="tableContainer"></div>
     </div>
@@ -86,7 +90,6 @@
         const now = new Date();
         const currentM = now.toISOString().slice(0, 7);
         
-        // Smart Date Reset: Last Day for past months, Today for current
         if (selMonth === currentM) {
             document.getElementById('globalDate').value = now.toISOString().split('T')[0];
         } else {
@@ -108,32 +111,29 @@
     async function fetchCSV(f, k) {
         try {
             const res = await fetch(f);
-            if(!res.ok) throw new Error();
             const text = await res.text();
             database[k] = text.split('\n').filter(l => l.trim() !== "").slice(1).map(row => {
                 const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || row.split(',');
                 return cols.map(v => v.trim().replace(/"/g, ''));
             });
-        } catch (e) { database[k] = []; console.warn("Missing file: " + f); }
+        } catch (e) { database[k] = []; }
     }
 
-    function handleSearch(e) {
-        if(e.key === 'Enter') {
-            const term = e.target.value.toUpperCase();
-            if(!term) return;
-            const res = [];
-            ['SPM', 'CVVRS', 'TELOC', 'BULK_VIO'].forEach(k => {
-                database[k].forEach(r => {
-                    if(r.join('|').toUpperCase().includes(term)) {
-                        if(k === 'BULK_VIO') res.push([r[0], 'AUTO-BULK', r[1], r[12], r[11], r[7], 'BULK']);
-                        else res.push([r[2], r[1], r[7], r[6], r[9], r[11], k]);
-                    }
-                });
+    function executeSearch() {
+        const term = document.getElementById('globalSearch').value.toUpperCase();
+        if(!term) return;
+        const res = [];
+        ['SPM', 'CVVRS', 'TELOC', 'BULK_VIO'].forEach(k => {
+            database[k].forEach(r => {
+                if(r.join('|').toUpperCase().includes(term)) {
+                    if(k === 'BULK_VIO') res.push([r[0], 'AUTO-BULK', r[1], r[12], r[11], r[7], 'BULK']);
+                    else res.push([r[2], r[1], r[7], r[6], r[9], r[11], k]);
+                }
             });
-            currentHeaders = ["DATE", "CLI NAME", "LOCO", "TRAIN", "LP NAME", "RESULT/VIO", "SOURCE"];
-            currentFilteredData = res;
-            showTable(`Search History for: "${term}"`);
-        }
+        });
+        currentHeaders = ["DATE", "CLI NAME", "LOCO", "TRAIN", "LP NAME", "RESULT", "SOURCE"];
+        currentFilteredData = res;
+        showTable(`Results for: ${term}`);
     }
 
     function openMerit(type, rank) {
@@ -141,27 +141,19 @@
         if(type === 'CLI' && database.MASTER_CLI.length > 0) {
             database.MASTER_CLI.forEach(m => { if(m[0]) stats[m[0].trim()] = { count: 0, vios: 0 }; });
         }
-
         [...database.SPM, ...database.CVVRS, ...database.TELOC].forEach(d => {
             const name = (type === 'CLI' ? d[1] : d[9])?.trim();
             if(!name || name === '-' || name.toUpperCase().includes("TELOC CELL")) return;
             if(!stats[name]) stats[name] = { count: 0, vios: 0 };
             stats[name].count++; if(d[11] && d[11].toUpperCase() !== 'NIL') stats[name].vios++;
         });
-
         let sorted = Object.entries(stats).sort((a,b) => {
             if(rank === 'WORST') return a[1].count - b[1].count || b[1].vios - a[1].vios;
             return b[1].count - a[1].count || a[1].vios - b[1].vios;
         }).slice(0, 15);
-
-        currentHeaders = ["RANK", "NAME", "TOTAL AUDITS", "VIOLATIONS FOUND"];
-        currentFilteredData = sorted.map((item, i) => [
-            `#${i+1}`, 
-            item[1].count === 0 ? `<span class="zero-audit">${item[0]} (PENDING)</span>` : item[0], 
-            item[1].count, 
-            item[1].vios
-        ]);
-        showTable(`${rank} PERFORMING ${type}s`);
+        currentHeaders = ["RANK", "NAME", "TOTAL AUDITS", "VIOLATIONS"];
+        currentFilteredData = sorted.map((item, i) => [`#${i+1}`, item[1].count === 0 ? `<span class="zero-audit">${item[0]} (0 Work)</span>` : item[0], item[1].count, item[1].vios]);
+        showTable(`${rank} ${type} List`);
     }
 
     function showTable(title) {
@@ -175,12 +167,12 @@
         const cats = [{id:'SPM',t:'SPM / RTIS AUDIT'}, {id:'CV',t:'CVVRS ANALYSIS'}, {id:'TL',t:'TELOC CELL AUDIT'}, {id:'BK',t:'BULK AUTO ANALYSIS'}];
         document.getElementById('mainGrid').innerHTML = cats.map(c => `
             <div class="card">
-                <h3 style="font-size:0.75rem; color:#64748b; font-weight:800; margin-bottom:0;">${c.t}</h3>
+                <h3 style="font-size:0.75rem; color:#64748b; font-weight:800;">${c.t}</h3>
                 <span class="count" id="count${c.id}">0</span>
-                <div class="graph-area" style="height:140px;"><canvas id="chart${c.id}"></canvas></div>
+                <div class="graph-area"><canvas id="chart${c.id}"></canvas></div>
                 <div style="display:flex; gap:8px; margin-top:10px;">
-                    <button class="btn-act" style="background:#0f172a; flex:1; padding:8px;" onclick="openDataWindow('${c.id}', false)">FULL LIST</button>
-                    <button class="btn-act" style="background:var(--danger); flex:1; padding:8px;" onclick="openDataWindow('${c.id}', true)">VIOLATIONS</button>
+                    <button class="btn-act" style="background:#0f172a; flex:1;" onclick="openDataWindow('${c.id}', false)">LIST</button>
+                    <button class="btn-act" style="background:var(--danger); flex:1;" onclick="openDataWindow('${c.id}', true)">VIO</button>
                 </div>
             </div>`).join('');
     }
@@ -193,7 +185,7 @@
         const vios = dates.map(d => isBulk ? (parseInt(data.find(r => r[0] === d)?.[2]) || 0) : data.filter(r => r[2] === d && r[11] && r[11].toUpperCase() !== 'NIL').length);
         activeCharts[canvasId] = new Chart(ctx, {
             type: 'bar',
-            data: { labels: dates.map(d => d.split('-')[2]), datasets: [{ label: 'Vio', data: vios, backgroundColor: '#dc2626', barThickness: 8 }, { label: 'Total', data: totals, backgroundColor: '#cbd5e1', barThickness: 8 }] },
+            data: { labels: dates.map(d => d.split('-')[2]), datasets: [{ label: 'Vio', data: vios, backgroundColor: '#dc2626' }, { label: 'Total', data: totals, backgroundColor: '#cbd5e1' }] },
             options: { plugins: { legend: { display: false }, datalabels: { anchor: 'end', align: 'top', font: { weight: '800', size: 9 }, display: (c) => c.dataset.label === 'Total' && c.dataset.data[c.dataIndex]>0 } }, scales: { y: { display: false }, x: { grid: { display: false } } }, maintainAspectRatio: false }
         });
     }
@@ -203,7 +195,6 @@
         const selDate = document.getElementById('globalDate').value;
         let filtered = database[dbKey];
         if (selDate) filtered = filtered.filter(d => d[0] === selDate || d[2] === selDate);
-        
         if (dbKey === 'BULK_VIO') {
             currentHeaders = ["DATE", "LOCO", "STATION", "SPEED", "ASPECT", "LP NAME", "TRAIN", "ALP NAME"];
             currentFilteredData = filtered.map(r => [r[0], r[1], r[2], r[5], r[7], r[11], r[12], r[15]]);
@@ -212,7 +203,7 @@
             currentHeaders = ["CLI", "ANALYSIS DT", "WORK DT", "TRAIN", "LOCO", "LP NAME", "ALP NAME", "VIOLATION"];
             currentFilteredData = filtered.map(r => [r[1], r[2], r[3], r[6], r[7], r[9], r[10], r[11]]);
         }
-        showTable(`${cat} Report (${onlyVios ? 'Violations Only' : 'All Audits'})`);
+        showTable(`${cat} Report`);
     }
 
     function refreshDashboard() {
@@ -230,8 +221,8 @@
 
     function closeModal() { document.getElementById('dataModal').style.display = 'none'; }
     function resetToMonthly() { document.getElementById('globalDate').value = ""; refreshDashboard(); }
-    function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentFilteredData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Report"); XLSX.writeFile(wb, "SECR_RAIPUR_REPORT.xlsx"); }
-    function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4'); doc.autoTable({ head: [currentHeaders], body: currentFilteredData.map(r => r.map(c => String(c).replace(/<[^>]*>/g, ''))), theme: 'grid', styles: { fontSize: 8 } }); doc.save("SECR_RAIPUR_REPORT.pdf"); }
+    function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentFilteredData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Report"); XLSX.writeFile(wb, "SECR_Report.xlsx"); }
+    function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4'); doc.autoTable({ head: [currentHeaders], body: currentFilteredData.map(r => r.map(c => String(c).replace(/<[^>]*>/g, ''))), theme: 'grid', styles: { fontSize: 8 } }); doc.save("SECR_Report.pdf"); }
 
     window.onload = loadNewMonth;
 </script>
