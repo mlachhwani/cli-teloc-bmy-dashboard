@@ -140,15 +140,28 @@
         const modal = document.getElementById('dataModal'); modal.style.display = 'flex';
         document.getElementById('modalExtra').innerHTML = "";
         document.getElementById('dlGroup').style.display = 'flex';
+        
         const dbKey = cat === 'BK' ? 'BULK_VIO' : (cat === 'CV' ? 'CVVRS' : cat === 'TL' ? 'TELOC' : 'SPM');
         const selDate = document.getElementById('globalDate').value;
         let filtered = database[dbKey];
-        if (selDate) filtered = filtered.filter(d => d[dbKey === 'BULK_VIO' ? 0 : 2] === selDate);
+        
+        if (selDate) filtered = filtered.filter(d => d[0] === selDate || d[2] === selDate);
         
         if (dbKey === 'BULK_VIO') {
-            currentHeaders = ["DATE", "LOCO", "STN", "TIME", "SPD", "ASPECT", "LP NAME", "TRAIN", "ACTION"];
-            currentFilteredData = filtered.map(r => [r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8]]);
+            // Bulk Violation Details Mapping (Based on your CSV)
+            currentHeaders = ["DATE", "LOCO", "STATION", "SPEED", "ASPECT", "LP NAME", "TRAIN", "ALP NAME"];
+            currentFilteredData = filtered.map(r => [
+                r[0],  // Date
+                r[1],  // Loco_No
+                r[2],  // Station
+                r[5],  // Speed
+                r[7],  // Aspect
+                r[11], // LP_Name (Index 11)
+                r[12], // Train_No
+                r[15]  // ALP NAME (Index 15)
+            ]);
         } else {
+            // SPM, CVVRS, TELOC Mapping
             if (onlyVios) filtered = filtered.filter(d => d[11] && d[11].toUpperCase() !== 'NIL');
             currentHeaders = ["SN", "CLI", "ANL_DATE", "WRK_DATE", "TRAIN", "LOCO", "LP NAME", "ALP NAME", "VIOLATION"];
             currentFilteredData = filtered.map(r => [r[0], r[1], r[2], r[3], r[6], r[7], r[9], r[10], r[11]]);
