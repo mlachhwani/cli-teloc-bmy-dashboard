@@ -112,17 +112,12 @@
     }
 
     function initCards() {
-        const cats = [
-            {id:'SPM',t:'SPM / RTIS AUDITS'}, {id:'CV',t:'CVVRS ANALYSIS'}, 
-            {id:'TL',t:'TELOC CELL AUDITS'}, {id:'BK',t:'BULK AUTO ANALYSIS'}
-        ];
+        const cats = [{id:'SPM',t:'SPM / RTIS AUDITS'}, {id:'CV',t:'CVVRS ANALYSIS'}, {id:'TL',t:'TELOC CELL AUDITS'}, {id:'BK',t:'BULK AUTO ANALYSIS'}];
         document.getElementById('mainGrid').innerHTML = cats.map(c => `
             <div class="card">
                 <h3 style="font-size:0.8rem; color:#64748b; font-weight:800; margin:0;">${c.t}</h3>
                 <span class="count" id="count${c.id}">0</span>
-                <div class="graph-box" onclick="zoomGraph('${c.id}')">
-                    <canvas id="chart${c.id}"></canvas>
-                </div>
+                <div class="graph-box" onclick="zoomGraph('${c.id}')"><canvas id="chart${c.id}"></canvas></div>
                 <div style="display:flex; gap:10px; margin-top:10px;">
                     <button class="btn-act" style="background:#1e293b; flex:1; font-size:0.75rem;" onclick="openDataWindow('${c.id}', false)">LIST</button>
                     <button class="btn-act" style="background:var(--danger); flex:1; font-size:0.75rem;" onclick="openDataWindow('${c.id}', true)">VIOS</button>
@@ -131,10 +126,12 @@
     }
 
     function draw(id, data, isBulk, isZoomed = false) {
-        const ctx = document.getElementById(id).getContext('2d');
-        if (activeCharts[id]) activeCharts[id].destroy();
+        const canvas = document.getElementById(id);
+        if(!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (activeCharts[id]) { activeCharts[id].destroy(); }
 
-        const dates = [...new Set(data.map(d => d[isBulk ? 0 : 2]))].sort();
+        const dates = [...new Set(data.map(d => d[isBulk ? 0 : 2]))].filter(x => x).sort();
         const totals = dates.map(d => isBulk ? (parseInt(data.find(r => r[0] === d)?.[1]) || 0) : data.filter(r => r[2] === d).length);
         const vios = dates.map(d => isBulk ? (parseInt(data.find(r => r[0] === d)?.[2]) || 0) : data.filter(r => r[2] === d && r[11] && r[11].toUpperCase() !== 'NIL').length);
 
@@ -153,22 +150,9 @@
                     legend: { display: false },
                     datalabels: { anchor: 'end', align: 'top', font: { weight: '800', size: isZoomed ? 12 : 8 }, display: (c) => c.dataset.label === 'Total' && c.dataset.data[c.dataIndex] > 0 }
                 },
-                scales: { 
-                    y: { display: isZoomed, beginAtZero: true }, 
-                    x: { grid: { display: false }, ticks: { font: { weight: '700' } } }
-                }
+                scales: { y: { display: isZoomed, beginAtZero: true }, x: { grid: { display: false }, ticks: { font: { weight: '700' } } } }
             }
         });
-    }
-
-    function zoomGraph(cat) {
-        document.getElementById('dataModal').style.display = 'flex';
-        document.getElementById('modalTitle').innerText = `Full Growth Chart: ${cat}`;
-        document.getElementById('modalGraphArea').style.display = 'block';
-        document.getElementById('tableContainer').innerHTML = "";
-        document.getElementById('dlGroup').style.display = 'none';
-        const dbKey = cat === 'CV' ? 'CVVRS' : cat === 'TL' ? 'TELOC' : (cat === 'BK' ? 'BULK' : 'SPM');
-        setTimeout(() => draw('zoomedChart', database[dbKey], cat === 'BK', true), 300);
     }
 
     function refreshDashboard() {
@@ -179,14 +163,9 @@
             draw(`chart${k}`, database[dbKey], false);
         });
         const bD = document.getElementById('globalDate').value;
-        const bTot = bD ? (database.BULK.find(x => x[0] === bD)?.[1] || 0) : database.BULK.reduce((s, r) => s + (parseInt(r[1]) || 0), 0);
-        document.getElementById('countBK').innerText = bTot;
-        draw('chartBK', database.BULK, true);
-    }
-
-    function closeModal() { 
-        document.getElementById('dataModal').style.display = 'none'; 
-        document.getElementById('modalGraphArea').style.display = 'none';
+        const bData = database.BULK;
+        document.getElementById('countBK').innerText = bD ? (bData.find(x => x[0] === bD)?.[1] || 0) : bData.reduce((s, r) => s + (parseInt(r[1]) || 0), 0);
+        draw('chartBK', bData, true);
     }
 
     function openMerit(type, rank) {
@@ -200,14 +179,39 @@
             if(!stats[name]) stats[name] = { count: 0, vios: 0 };
             stats[name].count++; if(d[11] && d[11].toUpperCase() !== 'NIL') stats[name].vios++;
         });
+
         let sorted = Object.entries(stats).sort((a,b) => {
-            if(rank === 'WORST') return a[1].count - b[1].count || b[1].vios - a[1].vios;
+            if(rank === 'WORST') {
+                // Priority 1: High Violation Count. Priority 2: High Audit count (to avoid 1/1 ranking above 2/2)
+                return b[1].vios - a[1].vios || b[1].count - a[1].count;
+            }
             return b[1].count - a[1].count || a[1].vios - b[1].vios;
-        }).slice(0, 15);
+        });
+
+        // Special logic for CLI Taleenders: Push 0 audit ones to top
+        if(type === 'CLI' && rank === 'WORST') {
+            sorted = sorted.sort((a,b) => a[1].count - b[1].count || b[1].vios - a[1].vios);
+        }
+
         currentHeaders = ["RANK", "NAME", "AUDITS", "VIOLATIONS"];
-        currentFilteredData = sorted.map((item, i) => [`#${i+1}`, item[1].count === 0 ? `<span style="color:red; font-weight:800;">${item[0]} (PENDING)</span>` : item[0], item[1].count, item[1].vios]);
+        currentFilteredData = sorted.slice(0, 15).map((item, i) => [
+            `#${i+1}`, 
+            item[1].count === 0 ? `<span style="color:red; font-weight:800;">${item[0]} (PENDING)</span>` : item[0], 
+            item[1].count, 
+            item[1].vios
+        ]);
         document.getElementById('modalGraphArea').style.display = 'none';
         showTable(`${rank} ${type} PERFORMANCE`);
+    }
+
+    function zoomGraph(cat) {
+        document.getElementById('dataModal').style.display = 'flex';
+        document.getElementById('modalTitle').innerText = `Full Growth Chart: ${cat}`;
+        document.getElementById('modalGraphArea').style.display = 'block';
+        document.getElementById('tableContainer').innerHTML = "";
+        document.getElementById('dlGroup').style.display = 'none';
+        const dbKey = cat === 'CV' ? 'CVVRS' : cat === 'TL' ? 'TELOC' : (cat === 'BK' ? 'BULK' : 'SPM');
+        setTimeout(() => draw('zoomedChart', database[dbKey], cat === 'BK', true), 300);
     }
 
     function showTable(title) {
@@ -234,6 +238,7 @@
         showTable(`${cat} REPORT`);
     }
 
+    function closeModal() { document.getElementById('dataModal').style.display = 'none'; document.getElementById('modalGraphArea').style.display = 'none'; }
     function resetToMonthly() { document.getElementById('globalDate').value = ""; refreshDashboard(); }
     function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentFilteredData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Report"); XLSX.writeFile(wb, "SECR_Report.xlsx"); }
     function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4'); doc.autoTable({ head: [currentHeaders], body: currentFilteredData.map(r => r.map(c => String(c).replace(/<[^>]*>/g, ''))), theme: 'grid' }); doc.save("SECR_Report.pdf"); }
