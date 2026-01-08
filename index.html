@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SECR RAIPUR | PERFORMANCE DASHBOARD</title>
+    <title>SECR RAIPUR | MASTER DASHBOARD</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -11,243 +11,213 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #f8fafc; --header-bg: #0f172a; --accent: #3b82f6; --danger: #ef4444; }
+        :root { --bg: #f1f5f9; --header-bg: #0f172a; --accent: #3b82f6; --danger: #e11d48; --success: #15803d; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); margin: 0; color: #1e293b; }
-        header { background: var(--header-bg); padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .main-title { font-weight: 800; font-size: 1.4rem; background: linear-gradient(to right, #60a5fa, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .container { max-width: 1550px; margin: 30px auto; padding: 0 20px; }
-        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .card { background: white; border-radius: 24px; padding: 22px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.02); transition: 0.3s; cursor: pointer; }
-        .card:hover { transform: translateY(-8px); border-color: var(--accent); box-shadow: 0 20px 25px rgba(0,0,0,0.1); }
-        .card .count { font-size: 3rem; font-weight: 800; color: var(--header-bg); margin: 5px 0; display: block; }
-        .graph-box { height: 170px; width: 100%; margin: 15px 0; background: #fff; }
-        .performer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 40px; }
-        .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(10px); }
-        .modal-content { background: white; width: 95%; max-height: 90vh; border-radius: 25px; padding: 35px; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th { background: #1e293b; color: white; padding: 15px; font-size: 0.75rem; text-transform: uppercase; text-align: center; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 600; text-align: center; }
-        .btn-act { padding: 12px 20px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; color: white; transition: 0.3s; }
-        select, input[type="date"] { padding: 10px; border-radius: 12px; border: 1px solid #cbd5e1; font-weight: 700; }
-        .pending { color: var(--danger); font-weight: 800; }
+        header { background: var(--header-bg); padding: 12px 35px; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .main-title { font-weight: 800; font-size: 1.4rem; color: #60a5fa; }
+        .container { max-width: 1600px; margin: 20px auto; padding: 0 15px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .card { background: white; border-radius: 20px; padding: 18px; border: 1px solid #e2e8f0; cursor: pointer; transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .count { font-size: 2.8rem; font-weight: 800; color: var(--header-bg); margin: 5px 0; display: block; }
+        .graph-box { height: 160px; margin-bottom: 10px; }
+        .performer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 30px; }
+        .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); display: none; align-items: center; justify-content: center; z-index: 2000; }
+        .modal-content { background: white; width: 98%; max-height: 95vh; border-radius: 15px; padding: 25px; overflow: hidden; display: flex; flex-direction: column; }
+        .table-wrapper { overflow: auto; flex-grow: 1; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 15px; }
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+        th { background: #1e293b; color: white; padding: 12px; font-size: 0.75rem; position: sticky; top: 0; text-transform: uppercase; }
+        td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; text-align: center; font-weight: 600; }
+        .btn-act { padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; color: white; transition: 0.2s; }
+        .btn-act:hover { opacity: 0.9; transform: scale(1.02); }
+        .pending-text { color: #94a3b8; font-style: italic; }
     </style>
 </head>
 <body>
 
 <header>
-    <div style="display:flex; align-items:center; gap:15px;">
-        <img src="ir_logo.png" style="height:55px;">
-        <div><span class="main-title">SECR RAIPUR</span><br><small style="color:#94a3b8; font-weight:600;">ELECTRICAL (OP) DASHBOARD</small></div>
+    <div style="display:flex; align-items:center; gap:12px;">
+        <img src="ir_logo.png" style="height:45px;">
+        <div><span class="main-title">SECR RAIPUR</span><br><small>Safety & Performance Dashboard</small></div>
     </div>
-    <div style="display:flex; gap:12px; align-items:center;">
-        <select id="monthSelector" onchange="loadNewMonth()">
-            <option value="2026-01">January 2026</option>
+    <div style="display:flex; gap:10px;">
+        <select id="monthSelector" onchange="loadData()" style="padding:8px; border-radius:8px; font-weight:700;">
             <option value="2025-12">December 2025</option>
+            <option value="2026-01">January 2026</option>
         </select>
-        <input type="date" id="globalDate" onchange="refreshDashboard()">
-        <button onclick="resetToMonthly()" class="btn-act" style="background:var(--accent)">MONTHLY VIEW</button>
+        <input type="date" id="globalDate" onchange="updateUI()" style="padding:8px; border-radius:8px; font-weight:700;">
+        <button onclick="resetView()" class="btn-act" style="background:var(--accent)">MONTHLY VIEW</button>
     </div>
 </header>
 
 <div class="container">
     <div class="summary-grid" id="mainGrid"></div>
     <div class="performer-grid">
-        <button class="btn-act" style="background:#0f172a;" onclick="openMerit('CLI', 'BEST')">🥇 TOP 10 CLIs</button>
-        <button class="btn-act" style="background:#0f172a;" onclick="openMerit('LP', 'BEST')">🏆 TOP 10 LPs</button>
-        <button class="btn-act" style="background:var(--danger);" onclick="openMerit('CLI', 'NEED IMPROVEMENT')">⚠️ CLI TAIL-ENDER</button>
-        <button class="btn-act" style="background:var(--danger);" onclick="openMerit('LP', 'NEED IMPROVEMENT')">🔴 LP ATTENTION</button>
+        <button class="btn-act" style="background:#0f172a;" onclick="openMerit('CLI', 'BEST')">🥇 TOP 10 CLIs (COMPLIANCE)</button>
+        <button class="btn-act" style="background:#0f172a;" onclick="openMerit('LP', 'BEST')">🏆 TOP 10 LPs (SAFETY STARS)</button>
+        <button class="btn-act" style="background:#64748b;" onclick="openMerit('CLI', 'WORST')">📋 CLI AUDIT STATUS</button>
+        <button class="btn-act" style="background:var(--danger);" onclick="openMerit('LP', 'WORST')">🔍 LP SAFETY MONITORING</button>
     </div>
 </div>
 
 <div class="modal" id="dataModal">
     <div class="modal-content">
-        <span onclick="closeModal()" style="float:right; cursor:pointer; font-size:2.5rem; color:#64748b;">&times;</span>
-        <h2 id="modalTitle" style="color:#0f172a; font-weight:800; margin:0;">Analysis</h2>
-        <div id="dlGroup" style="margin:20px 0; display:none; gap:12px;">
-            <button class="btn-act" style="background:#be123c;" onclick="exportPDF()">PDF</button>
-            <button class="btn-act" style="background:#15803d;" onclick="exportExcel()">EXCEL</button>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2 id="modalTitle" style="margin:0; font-weight:800; color:#0f172a;">Analysis Report</h2>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button class="btn-act" style="background:var(--success);" onclick="exportExcel()">EXCEL</button>
+                <button class="btn-act" style="background:#be123c;" onclick="exportPDF()">PDF</button>
+                <span onclick="closeModal()" style="cursor:pointer; font-size:2.5rem; color:#64748b; margin-left:15px;">&times;</span>
+            </div>
         </div>
-        <div id="modalGraphArea" style="height:400px; width:100%; display:none; margin-bottom:20px;"><canvas id="zoomedChart"></canvas></div>
-        <div id="tableContainer"></div>
+        <div class="table-wrapper" id="tableWrapper"></div>
     </div>
 </div>
 
 <script>
-    Chart.register(ChartDataLabels);
     const ROOT = "https://raw.githubusercontent.com/mlachhwani/cli-teloc-bmy-dashboard/main";
-    let database = { SPM: [], CVVRS: [], TELOC: [], BULK: [], MASTER_CLI: [] };
-    let activeCharts = {};
+    let db = { SPM:{h:[], d:[]}, CVVRS:{h:[], d:[]}, TELOC:{h:[], d:[]}, BULK_SUM:{h:[], d:[]}, BULK_DET:{h:[], d:[]}, MASTER_CLI:[] };
+    let charts = {};
+    let currentData = [], currentHeaders = [];
 
-    async function loadNewMonth() {
-        const selMonth = document.getElementById('monthSelector').value;
-        const now = new Date();
-        if (selMonth === now.toISOString().slice(0, 7)) {
-            document.getElementById('globalDate').value = now.toISOString().split('T')[0];
-        } else {
-            const [y, m] = selMonth.split('-').map(Number);
-            document.getElementById('globalDate').value = `${selMonth}-${new Date(y, m, 0).getDate()}`;
-        }
-        const path = `${ROOT}/data/${selMonth}`;
+    async function loadData() {
+        const m = document.getElementById('monthSelector').value;
+        const path = `${ROOT}/data/${m}`;
         await Promise.all([
             fetchCSV(`${path}/spm.csv`, 'SPM'), fetchCSV(`${path}/cvvrs.csv`, 'CVVRS'),
-            fetchCSV(`${path}/teloc_daily.csv`, 'TELOC'), fetchCSV(`${path}/bulk_analysis.csv`, 'BULK'),
+            fetchCSV(`${path}/teloc_daily.csv`, 'TELOC'), fetchCSV(`${path}/bulk_analysis.csv`, 'BULK_SUM'),
+            fetchCSV(`${path}/bulk_violation_details.csv`, 'BULK_DET'),
             fetchCSV(`${ROOT}/cli_master.csv`, 'MASTER_CLI')
         ]);
-        initCards(); refreshDashboard();
+        renderCards(); updateUI();
     }
 
-    async function fetchCSV(f, k) {
+    async function fetchCSV(url, key) {
         try {
-            const res = await fetch(f);
-            const text = await res.text();
-            database[k] = text.split('\n').filter(l => l.trim() !== "").slice(1).map(row => {
-                const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || row.split(',');
-                return cols.map(v => v.trim().replace(/"/g, ''));
+            const r = await fetch(url);
+            const t = await r.text();
+            const rows = t.split('\n').filter(l => l.trim() !== "").map(row => {
+                return (row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || []).map(v => v.trim().replace(/"/g, ''));
             });
-        } catch (e) { database[k] = []; }
+            if(key === 'MASTER_CLI') db.MASTER_CLI = rows.slice(1);
+            else { db[key].h = rows[0]; db[key].d = rows.slice(1); }
+        } catch(e) { console.warn("Missing file:", key); }
     }
 
-    function initCards() {
-        const cats = [{id:'SPM',t:'SPM / RTIS AUDITS'}, {id:'CV',t:'CVVRS ANALYSIS'}, {id:'TL',t:'TELOC CELL AUDITS'}, {id:'BK',t:'BULK AUTO ANALYSIS'}];
+    function renderCards() {
+        const cats = [{id:'SPM', t:'SPM AUDITS'}, {id:'CVVRS', t:'CVVRS ANALYSIS'}, {id:'TELOC', t:'TELOC CELL'}, {id:'BULK', t:'BULK AUTO'}];
         document.getElementById('mainGrid').innerHTML = cats.map(c => `
-            <div class="card" onclick="zoomGraph('${c.id}')">
-                <h3 style="font-size:0.8rem; color:#64748b; font-weight:800; margin:0;">${c.t}</h3>
-                <span class="count" id="count${c.id}">0</span>
-                <div class="graph-box"><canvas id="chart${c.id}"></canvas></div>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-act" style="background:#1e293b; flex:1; font-size:0.75rem;" onclick="event.stopPropagation(); openDataWindow('${c.id}', false)">LIST</button>
-                    <button class="btn-act" style="background:var(--danger); flex:1; font-size:0.75rem;" onclick="event.stopPropagation(); openDataWindow('${c.id}', true)">VIOS</button>
+            <div class="card">
+                <small style="font-weight:800; color:#64748b;">${c.t}</small>
+                <span class="count" id="count_${c.id}">0</span>
+                <div class="graph-box" onclick="zoomGraph('${c.id}')"><canvas id="chart_${c.id}"></canvas></div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-act" style="background:#1e293b; flex:1; font-size:0.75rem;" onclick="showTable('${c.id}', false)">VIEW LIST</button>
+                    <button class="btn-act" style="background:var(--danger); flex:1; font-size:0.75rem;" onclick="showTable('${c.id}', true)">VIOLATIONS</button>
                 </div>
             </div>`).join('');
     }
 
-    function drawChart(id, data, isBulk, isZoomed = false) {
-        const canvas = document.getElementById(id);
-        if(!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (activeCharts[id]) activeCharts[id].destroy();
+    function updateUI() {
+        const dt = document.getElementById('globalDate').value;
+        ['SPM','CVVRS','TELOC'].forEach(k => {
+            const data = dt ? db[k].d.filter(r => r[2] === dt) : db[k].d;
+            document.getElementById(`count_${k}`).innerText = data.length;
+            draw(k, db[k].d, false);
+        });
+        const bD = dt ? db.BULK_SUM.d.find(r => r[0] === dt) : null;
+        document.getElementById('count_BULK').innerText = dt ? (bD ? bD[1] : 0) : db.BULK_SUM.d.reduce((a,b)=>a+parseInt(b[1]||0), 0);
+        draw('BULK', db.BULK_SUM.d, true);
+    }
 
-        // Data processing for charts (Using index 2 for Date in all, Index 0 for Bulk)
+    function draw(id, data, isBulk) {
+        const ctx = document.getElementById(`chart_${id}`).getContext('2d');
+        if(charts[id]) charts[id].destroy();
         const dateIdx = isBulk ? 0 : 2;
-        const dates = [...new Set(data.map(d => d[dateIdx]))].filter(x => x && x.includes('-')).sort();
-        
-        const totals = dates.map(d => isBulk ? (parseInt(data.find(r => r[0] === d)?.[1]) || 0) : data.filter(r => r[dateIdx] === d).length);
-        const vios = dates.map(d => isBulk ? (parseInt(data.find(r => r[0] === d)?.[2]) || 0) : data.filter(r => r[dateIdx] === d && r[11] && r[11].toUpperCase() !== 'NIL').length);
-
-        activeCharts[id] = new Chart(ctx, {
+        const labels = [...new Set(data.map(r => r[dateIdx]?.split('-')[2] || r[dateIdx]?.split('/')[2] || r[dateIdx]?.split('.')[0]))].filter(x => x && x.length <= 2).sort();
+        const totals = labels.map(l => {
+            const dayData = data.filter(r => (r[dateIdx]||'').includes(l.length === 1 ? '0'+l : l));
+            return isBulk ? dayData.reduce((a,b)=>a+parseInt(b[1]||0),0) : dayData.length;
+        });
+        charts[id] = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels: dates.map(d => d.split('-')[2]),
-                datasets: [
-                    { label: 'Violations', data: vios, backgroundColor: '#ef4444' },
-                    { label: 'Total', data: totals, backgroundColor: '#cbd5e1' }
-                ]
-            },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                plugins: { 
-                    legend: { display: false },
-                    datalabels: { anchor: 'end', align: 'top', font: { weight: '800', size: isZoomed ? 11 : 8 }, display: (c) => c.dataset.label === 'Total' && c.dataset.data[c.dataIndex] > 0 }
-                },
-                scales: { 
-                    y: { display: isZoomed, beginAtZero: true }, 
-                    x: { grid: { display: false }, ticks: { font: { weight: '700' } } }
-                }
-            }
+            data: { labels, datasets: [{ data: totals, backgroundColor: '#cbd5e1' }] },
+            options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{display:false}, x:{grid:{display:false}, ticks:{font:{weight:'700'}}}} }
         });
     }
 
-    function refreshDashboard() {
-        ['SPM', 'CV', 'TL'].forEach(k => {
-            const dbKey = k === 'CV' ? 'CVVRS' : k === 'TL' ? 'TELOC' : 'SPM';
-            const d = document.getElementById('globalDate').value;
-            document.getElementById(`count${k}`).innerText = d ? database[dbKey].filter(x => x[2] === d).length : database[dbKey].length;
-            drawChart(`chart${k}`, database[dbKey], false);
-        });
-        const bD = document.getElementById('globalDate').value;
-        const bData = database.BULK;
-        document.getElementById('countBK').innerText = bD ? (bData.find(x => x[0] === bD)?.[1] || 0) : bData.reduce((s, r) => s + (parseInt(r[1]) || 0), 0);
-        drawChart('chartBK', bData, true);
+    function showTable(id, onlyVios) {
+        const dt = document.getElementById('globalDate').value;
+        const key = id === 'BULK' ? 'BULK_DET' : id;
+        currentHeaders = db[key].h;
+        let data = db[key].d;
+
+        if(dt) {
+            // Smart Filter for different date formats (2026-01-01 vs 2026/01/01)
+            const dtAlt = dt.replace(/-/g, '/');
+            data = data.filter(r => r[id === 'BULK' ? 0 : 2] === dt || r[id === 'BULK' ? 0 : 2] === dtAlt);
+        }
+
+        if(onlyVios) {
+            if(id === 'BULK') data = data.filter(r => r.some(c => String(c).toUpperCase() === 'YES' || String(c).toUpperCase() === 'VIOLATION'));
+            else data = data.filter(r => r[11] && r[11].toUpperCase() !== 'NIL');
+        }
+
+        currentData = data;
+        renderTable(`${id} ${onlyVios ? 'Violations' : 'Report'}`);
+    }
+
+    function renderTable(title) {
+        let html = `<table><thead><tr>${currentHeaders.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+        html += currentData.map(r => `<tr>${r.map(c => `<td>${c||'-'}</td>`).join('')}</tr>`).join('');
+        document.getElementById('tableWrapper').innerHTML = html + `</tbody></table>`;
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('dataModal').style.display = 'flex';
     }
 
     function openMerit(type, rank) {
         const stats = {};
-        // Initialize from master for CLI
-        if(type === 'CLI' && database.MASTER_CLI.length > 0) {
-            database.MASTER_CLI.forEach(m => { if(m[0]) stats[m[0].trim()] = { count: 0, vios: 0 }; });
-        }
-        
-        [...database.SPM, ...database.CVVRS, ...database.TELOC].forEach(d => {
-            const name = (type === 'CLI' ? d[1] : d[9])?.trim();
+        if(type === 'CLI') db.MASTER_CLI.forEach(m => { if(m[0]) stats[m[0].trim()] = { count: 0, vios: 0 }; });
+        [...db.SPM.d, ...db.CVVRS.d, ...db.TELOC.d].forEach(r => {
+            const name = (type === 'CLI' ? r[1] : r[9])?.trim();
             if(!name || name === '-' || name.toUpperCase().includes("TELOC CELL")) return;
             if(!stats[name]) stats[name] = { count: 0, vios: 0 };
-            stats[name].count++; if(d[11] && d[11].toUpperCase() !== 'NIL') stats[name].vios++;
+            stats[name].count++; if(r[11] && r[11].toUpperCase() !== 'NIL') stats[name].vios++;
         });
 
         let sorted = Object.entries(stats);
-        
-        if (type === 'LP') {
-            // APPLY MUKESH LP FORMULA: Rate (Desc) > Trips (Desc)
+        if(type === 'LP') {
+            // Mukesh Logic: Rate Desc > Trips Desc
             sorted.sort((a,b) => {
-                const rateA = a[1].count > 0 ? a[1].vios / a[1].count : 0;
-                const rateB = b[1].count > 0 ? b[1].vios / b[1].count : 0;
-                if (rank === 'NEED IMPROVEMENT') return rateB - rateA || b[1].count - a[1].count;
+                const rA = a[1].count > 0 ? a[1].vios/a[1].count : 0;
+                const rB = b[1].count > 0 ? b[1].vios/b[1].count : 0;
+                if(rank === 'WORST') return rB - rA || b[1].count - a[1].count;
                 return b[1].count - a[1].count || a[1].vios - b[1].vios;
             });
         } else {
-            // CLI LOGIC: Analysis Count Basis
-            sorted.sort((a,b) => {
-                if (rank === 'NEED IMPROVEMENT') return a[1].count - b[1].count || b[1].vios - a[1].vios;
-                return b[1].count - a[1].count || a[1].vios - b[1].vios;
-            });
+            sorted.sort((a,b) => (rank === 'WORST') ? a[1].count - b[1].count : b[1].count - a[1].count);
         }
 
-        currentHeaders = ["RANK", "NAME", "AUDITS / TRIPS", "VIOLATIONS", "RATE"];
-        currentFilteredData = sorted.slice(0, 15).map((item, i) => {
-            const rate = item[1].count > 0 ? (item[1].vios / item[1].count).toFixed(2) : "0.00";
-            const nameDisp = item[1].count === 0 ? `<span class="pending">${item[0]} (PENDING)</span>` : item[0];
-            return [`#${i+1}`, nameDisp, item[1].count, item[1].vios, rate];
-        });
-        document.getElementById('modalGraphArea').style.display = 'none';
-        showTable(`${rank} ${type} PERFORMANCE`);
-    }
-
-    function zoomGraph(cat) {
-        document.getElementById('dataModal').style.display = 'flex';
-        document.getElementById('modalTitle').innerText = `Full Growth Analysis: ${cat}`;
-        document.getElementById('modalGraphArea').style.display = 'block';
-        document.getElementById('tableContainer').innerHTML = "";
-        document.getElementById('dlGroup').style.display = 'none';
-        const dbKey = cat === 'CV' ? 'CVVRS' : cat === 'TL' ? 'TELOC' : (cat === 'BK' ? 'BULK' : 'SPM');
-        setTimeout(() => drawChart('zoomedChart', database[dbKey], cat === 'BK', true), 300);
-    }
-
-    function showTable(title) {
-        document.getElementById('dataModal').style.display = 'flex';
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('dlGroup').style.display = 'flex';
-        document.getElementById('tableContainer').innerHTML = `<table><thead><tr>${currentHeaders.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${currentFilteredData.map(r=>`<tr>${r.map(c=>`<td>${c||'-'}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-    }
-
-    function openDataWindow(cat, onlyVios) {
-        document.getElementById('modalGraphArea').style.display = 'none';
-        const dbKey = cat === 'BK' ? 'BULK' : (cat === 'CV' ? 'CVVRS' : cat === 'TL' ? 'TELOC' : 'SPM');
-        const selDate = document.getElementById('globalDate').value;
-        let filtered = database[dbKey];
-        if (selDate) filtered = filtered.filter(d => (cat === 'BK' ? d[0] : d[2]) === selDate);
-        if (onlyVios) filtered = filtered.filter(d => d[11] && d[11].toUpperCase() !== 'NIL');
-        
-        currentHeaders = ["DATE", "CLI", "TRAIN", "LOCO", "LP NAME", "VIOLATION"];
-        currentFilteredData = filtered.map(r => [r[2]||r[0], r[1], r[6]||'-', r[7]||'-', r[9]||'-', r[11]||'-']);
-        showTable(`${cat} REPORT`);
+        currentHeaders = ["RANK", "NAME", "TOTAL ACTIVITY", "VIOLATIONS", "RATIO"];
+        currentData = sorted.slice(0, 15).map((x, i) => [
+            `#${i+1}`, x[1].count === 0 ? `<span class="pending-text">${x[0]} (No Audit)</span>` : x[0],
+            x[1].count, x[1].vios, (x[1].count > 0 ? (x[1].vios/x[1].count).toFixed(2) : "0.00")
+        ]);
+        renderTable((type==='LP'? (rank==='BEST'?'Safety Stars':'Priority Monitoring') : (rank==='BEST'?'Compliance Leaders':'Audit Watch')));
     }
 
     function closeModal() { document.getElementById('dataModal').style.display = 'none'; }
-    function resetToMonthly() { document.getElementById('globalDate').value = ""; refreshDashboard(); }
-    function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentFilteredData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Report"); XLSX.writeFile(wb, "SECR_Report.xlsx"); }
-    function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a4'); doc.autoTable({ head: [currentHeaders], body: currentFilteredData.map(r => r.map(c => String(c).replace(/<[^>]*>/g, ''))), theme: 'grid' }); doc.save("SECR_Report.pdf"); }
-
-    window.onload = loadNewMonth;
+    function resetView() { document.getElementById('globalDate').value = ""; updateUI(); }
+    function exportExcel() {
+        const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentData.map(r => r.map(c => String(c).replace(/<[^>]*>/g, '')))]);
+        const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "SECR_Report.xlsx");
+    }
+    function exportPDF() {
+        const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a3');
+        doc.autoTable({ head:[currentHeaders], body:currentData.map(r => r.map(c => String(c).replace(/<[^>]*>/g, ''))), theme:'grid', styles:{fontSize:7} });
+        doc.save("SECR_Report.pdf");
+    }
+    window.onload = loadData;
 </script>
 </body>
 </html>
