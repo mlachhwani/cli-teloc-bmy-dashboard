@@ -131,6 +131,9 @@
         draw(`chart_BULK`, db.BULK_SUM.d, true);
     }
 
+    <script>
+    // ... (Data Loading logic same rahega) ...
+
     function draw(canvasId, data, isBulk, isZoomed = false) {
         const canvas = document.getElementById(canvasId);
         if(!canvas) return;
@@ -138,24 +141,44 @@
         if(charts[canvasId]) charts[canvasId].destroy();
         
         const dateIdx = isBulk ? 0 : 2;
-        const labels = [...new Set(data.map(r => r[dateIdx]?.split('-')[2] || r[dateIdx]?.split('/')[2] || r[dateIdx]?.split('.')[0]))].filter(x => x && x.length <= 2).sort();
+        // Mahine ki saari Unique Dates nikalna
+        const labels = [...new Set(data.map(r => {
+            const parts = (r[dateIdx]||'').split(/[-/.]/);
+            return isBulk ? parts[0] : parts[2]; // Bulk mein date pehle hoti hai, manual mein last mein
+        }))].filter(x => x && x.length <= 2).sort((a,b) => a-b);
+
         const totals = labels.map(l => {
-            const target = l.padStart(2, '0');
-            const dayData = data.filter(r => (r[dateIdx]||'').includes(target));
+            const targetDay = l.padStart(2, '0');
+            const dayData = data.filter(r => {
+                const dateVal = r[dateIdx] || '';
+                const parts = dateVal.split(/[-/.]/);
+                // EXACT MATCH LOGIC: Check if the Day part is exactly equal to our label
+                const currentDay = isBulk ? parts[0] : parts[2];
+                return currentDay === targetDay;
+            });
             return isBulk ? dayData.reduce((a,b)=>a+parseInt(b[1]||0),0) : dayData.length;
         });
 
         charts[canvasId] = new Chart(ctx, {
             type: 'bar',
-            data: { labels, datasets: [{ data: totals, backgroundColor: isBulk ? '#6366f1' : '#3b82f6', borderRadius: 5 }] },
+            data: { labels, datasets: [{ 
+                data: totals, 
+                backgroundColor: isBulk ? '#6366f1' : '#3b82f6', 
+                borderRadius: 5 
+            }] },
             options: { 
                 responsive:true, maintainAspectRatio:false, 
-                plugins:{ legend:{display:false}, datalabels:{display:isZoomed, anchor:'end', align:'top', font:{weight:'bold'}} }, 
-                scales:{ y:{display:isZoomed, beginAtZero:true}, x:{grid:{display:false}, ticks:{font:{weight:'700'}}} } 
+                plugins:{ 
+                    legend:{display:false}, 
+                    datalabels:{display:isZoomed, anchor:'end', align:'top', font:{weight:'bold'}} 
+                }, 
+                scales:{ 
+                    y:{display:isZoomed, beginAtZero:true}, 
+                    x:{grid:{display:false}, ticks:{font:{weight:'700'}}} 
+                } 
             }
         });
     }
-
     function zoomGraph(id) {
         document.getElementById('dataModal').style.display = 'flex';
         document.getElementById('zoomGraphArea').style.display = 'block';
