@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SECR RAIPUR | MASTER DASHBOARD v12.5</title>
+    <title>SECR RAIPUR | MASTER DASHBOARD v12.6</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -51,7 +51,7 @@
 <div class="container">
     <div class="summary-grid" id="mainGrid"></div>
     <div class="performer-grid">
-        <button class="btn-act" style="background:#0f172a;" onclick="openMerit('CLI', 'BEST')">🥇 TOP 10 CLIs</button>
+        <button class="btn-act" style="background:#0f172a;" onclick="openMerit('CLI', 'BEST')">🥇 TOP 10 CLIs (HONESTY)</button>
         <button class="btn-act" style="background:#0f172a;" onclick="openMerit('LP', 'BEST')">🏆 TOP 10 LPs</button>
         <button class="btn-act" style="background:#64748b;" onclick="openMerit('CLI', 'WORST')">📋 CLI STATUS</button>
         <button class="btn-act" style="background:var(--danger);" onclick="openMerit('LP', 'WORST')">🔍 LP MONITORING</button>
@@ -61,7 +61,7 @@
 <div class="modal" id="dataModal">
     <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2 id="modalTitle" style="margin:0; font-weight:800; color:#0f172a;">Details View</h2>
+            <h2 id="modalTitle" style="margin:0; font-weight:800; color:#0f172a;">Performance View</h2>
             <div style="display:flex; gap:12px;">
                 <button class="btn-act" style="background:#15803d;" onclick="exportExcel()">EXCEL</button>
                 <button class="btn-act" style="background:#be123c;" onclick="exportPDF()">PDF</button>
@@ -100,7 +100,7 @@
             });
             if(key === 'MASTER_CLI') db.MASTER_CLI = rows.slice(1);
             else { db[key].h = rows[0]; db[key].d = rows.slice(1); }
-        } catch(e) { console.warn("File Error:", key); }
+        } catch(e) { console.warn("Error:", key); }
     }
 
     function renderCards() {
@@ -146,57 +146,64 @@
             return isBulk ? dayData.reduce((a,b)=>a+parseInt(b[1]||0), 0) : dayData.length;
         });
 
-        // SMART AVERAGE: Current month Divide by Current Date, Past month by Full Month
         const now = new Date();
         const selectedMonthStr = document.getElementById('monthSelector').value; 
         const [selYear, selMonth] = selectedMonthStr.split('-').map(Number);
-        
-        let daysToDivide = 31;
-        if (selYear === now.getFullYear() && selMonth === (now.getMonth() + 1)) {
-            daysToDivide = now.getDate(); 
-        } else {
-            daysToDivide = new Date(selYear, selMonth, 0).getDate();
-        }
-
-        const totalSum = dailyValues.reduce((a, b) => a + b, 0);
-        const graphAverage = totalSum / daysToDivide;
+        let daysToDivide = (selYear === now.getFullYear() && selMonth === (now.getMonth() + 1)) ? now.getDate() : new Date(selYear, selMonth, 0).getDate();
+        const graphAverage = dailyValues.reduce((a, b) => a + b, 0) / daysToDivide;
 
         charts[canvasId] = new Chart(ctx, {
             type: 'bar',
             data: { 
                 labels, 
-                datasets: [
-                    { data: dailyValues, backgroundColor: '#3b82f6', borderRadius: 4, order: 2 },
-                    {
-                        label: 'Average',
-                        data: new Array(31).fill(graphAverage),
-                        borderColor: '#ef4444',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        type: 'line',
-                        pointRadius: 0,
-                        fill: false,
-                        order: 1
-                    }
-                ] 
+                datasets: [{ data: dailyValues, backgroundColor: '#3b82f6', borderRadius: 4, order: 2 },
+                { label: 'Avg', data: new Array(31).fill(graphAverage), borderColor: '#ef4444', borderWidth: 2, borderDash: [5, 5], type: 'line', pointRadius: 0, fill: false, order: 1 }] 
             },
-            options: { 
-                responsive:true, maintainAspectRatio:false, 
-                plugins:{ legend:{display:false} },
-                scales:{ 
-                    y:{display:isZoomed, beginAtZero:true}, 
-                    x:{grid:{display:false}, ticks:{font:{size:8}}}
-                }
-            }
+            options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{display:false} }, scales:{ y:{display:isZoomed, beginAtZero:true}, x:{grid:{display:false}, ticks:{font:{size:8}}}} }
         });
+    }
+
+    function openMerit(type, rank) {
+        document.getElementById('zoomGraphArea').style.display = 'none';
+        document.getElementById('tableWrapper').style.display = 'block';
+        document.getElementById('modalTitle').innerText = (type === 'LP') ? 'LP Safety Performance Merit' : 'CLI Performance (Janch + Honesty Factor)';
+        
+        const stats = {};
+        if(type === 'CLI') db.MASTER_CLI.forEach(m => { if(m[0]) stats[m[0].trim()] = { count: 0, vios: 0 }; });
+        [...db.SPM.d, ...db.CVVRS.d, ...db.TELOC.d].forEach(r => {
+            const name = (type === 'CLI' ? r[1] : r[9])?.trim();
+            if(!name || name === '-' || name.toUpperCase().includes("TELOC")) return;
+            if(!stats[name]) stats[name] = { count: 0, vios: 0 };
+            stats[name].count++; if(r[11] && r[11].toUpperCase() !== 'NIL') stats[name].vios++;
+        });
+
+        let sorted = Object.entries(stats);
+        if(type === 'CLI') {
+            // NEW LOGIC: SCORE = Janch + (Violations * 5)
+            sorted.sort((a,b) => {
+                const sA = a[1].count + (a[1].vios * 5);
+                const sB = b[1].count + (b[1].vios * 5);
+                return rank === 'BEST' ? (sB - sA) : (sA - sB);
+            });
+        } else {
+            sorted.sort((a,b) => {
+                const sA = (a[1].count * 10) - (a[1].vios * 25);
+                const sB = (b[1].count * 10) - (b[1].vios * 25);
+                return rank === 'BEST' ? (sB - sA) : (sA - sB);
+            });
+        }
+
+        currentHeaders = ["RANK", "NAME", "TOTAL JANCH", "VIOLATIONS", "PERF SCORE"];
+        currentData = sorted.slice(0, 15).map((x, i) => [`#${i+1}`, x[0], x[1].count, x[1].vios, (type==='CLI'?(x[1].count+(x[1].vios*5)):((x[1].count*10)-(x[1].vios*25)))]);
+        renderTable();
     }
 
     function zoomGraph(id) {
         document.getElementById('dataModal').style.display = 'flex';
         document.getElementById('zoomGraphArea').style.display = 'block';
         document.getElementById('tableWrapper').style.display = 'none';
-        const titles = { 'SPM': 'SPM AUDIT PERFORMANCE', 'CVVRS': 'CVVRS ANALYSIS PERFORMANCE', 'TELOC': 'TELOC CELL PERFORMANCE', 'BULK': 'BULK AUTOMATION PERFORMANCE' };
-        document.getElementById('modalTitle').innerText = titles[id] || "Performance View";
+        const titles = { 'SPM': 'SPM PERFORMANCE', 'CVVRS': 'CVVRS PERFORMANCE', 'TELOC': 'TELOC PERFORMANCE', 'BULK': 'BULK PERFORMANCE' };
+        document.getElementById('modalTitle').innerText = titles[id];
         const key = id === 'BULK' ? 'BULK_SUM' : id;
         setTimeout(() => draw('zoomedChart', db[key].d, id === 'BULK', true), 200);
     }
@@ -215,33 +222,6 @@
         renderTable();
     }
 
-    function openMerit(type, rank) {
-        document.getElementById('zoomGraphArea').style.display = 'none';
-        document.getElementById('tableWrapper').style.display = 'block';
-        document.getElementById('modalTitle').innerText = (type === 'LP') ? 'LP Safety Merit List (Quality + Safety)' : 'CLI Audit Performance List';
-        const stats = {};
-        if(type === 'CLI') db.MASTER_CLI.forEach(m => { if(m[0]) stats[m[0].trim()] = { count: 0, vios: 0 }; });
-        [...db.SPM.d, ...db.CVVRS.d, ...db.TELOC.d].forEach(r => {
-            const name = (type === 'CLI' ? r[1] : r[9])?.trim();
-            if(!name || name === '-' || name.toUpperCase().includes("TELOC")) return;
-            if(!stats[name]) stats[name] = { count: 0, vios: 0 };
-            stats[name].count++; if(r[11] && r[11].toUpperCase() !== 'NIL') stats[name].vios++;
-        });
-        let sorted = Object.entries(stats);
-        if(type === 'CLI') {
-            sorted.sort((a,b) => rank === 'BEST' ? (b[1].count - a[1].count || b[1].vios - a[1].vios) : (a[1].count - b[1].count));
-        } else {
-            sorted.sort((a,b) => {
-                const sA = (a[1].count * 10) - (a[1].vios * 25);
-                const sB = (b[1].count * 10) - (b[1].vios * 25);
-                return rank === 'BEST' ? (sB - sA) : (sA - sB);
-            });
-        }
-        currentHeaders = ["RANK", "NAME", "TOTAL JANCH", "VIOLATIONS", "PERF SCORE"];
-        currentData = sorted.slice(0, 15).map((x, i) => [`#${i+1}`, x[0], x[1].count, x[1].vios, (type==='CLI'?(x[1].count+x[1].vios):((x[1].count*10)-(x[1].vios*25)))]);
-        renderTable();
-    }
-
     function renderTable() {
         let html = `<table><thead><tr>${currentHeaders.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
         html += currentData.map(r => `<tr>${r.map(c => `<td>${c||'-'}</td>`).join('')}</tr>`).join('');
@@ -251,8 +231,8 @@
 
     function closeModal() { document.getElementById('dataModal').style.display = 'none'; }
     function resetView() { document.getElementById('globalDate').value = ""; updateUI(); }
-    function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "Report.xlsx"); }
-    function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a3'); doc.autoTable({ head:[currentHeaders], body:currentData }); doc.save("Report.pdf"); }
+    function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "SECR_Report.xlsx"); }
+    function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a3'); doc.autoTable({ head:[currentHeaders], body:currentData }); doc.save("SECR_Report.pdf"); }
     window.onload = loadData;
 </script>
 </body>
