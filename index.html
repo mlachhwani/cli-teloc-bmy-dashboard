@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SECR RAIPUR | MASTER DASHBOARD v12.6</title>
+    <title>SECR RAIPUR | MASTER DASHBOARD v12.7</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -51,7 +51,7 @@
 <div class="container">
     <div class="summary-grid" id="mainGrid"></div>
     <div class="performer-grid">
-        <button class="btn-act" style="background:#0f172a;" onclick="openMerit('CLI', 'BEST')">🥇 TOP 10 CLIs (HONESTY)</button>
+        <button class="btn-act" style="background:#0f172a;" onclick="openMerit('CLI', 'BEST')">🥇 TOP 10 CLIs</button>
         <button class="btn-act" style="background:#0f172a;" onclick="openMerit('LP', 'BEST')">🏆 TOP 10 LPs</button>
         <button class="btn-act" style="background:#64748b;" onclick="openMerit('CLI', 'WORST')">📋 CLI STATUS</button>
         <button class="btn-act" style="background:var(--danger);" onclick="openMerit('LP', 'WORST')">🔍 LP MONITORING</button>
@@ -61,7 +61,7 @@
 <div class="modal" id="dataModal">
     <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2 id="modalTitle" style="margin:0; font-weight:800; color:#0f172a;">Performance View</h2>
+            <h2 id="modalTitle" style="margin:0; font-weight:800; color:#0f172a;">Performance Analysis</h2>
             <div style="display:flex; gap:12px;">
                 <button class="btn-act" style="background:#15803d;" onclick="exportExcel()">EXCEL</button>
                 <button class="btn-act" style="background:#be123c;" onclick="exportPDF()">PDF</button>
@@ -100,7 +100,7 @@
             });
             if(key === 'MASTER_CLI') db.MASTER_CLI = rows.slice(1);
             else { db[key].h = rows[0]; db[key].d = rows.slice(1); }
-        } catch(e) { console.warn("Error:", key); }
+        } catch(e) { console.warn("Check File:", key); }
     }
 
     function renderCards() {
@@ -166,7 +166,7 @@
     function openMerit(type, rank) {
         document.getElementById('zoomGraphArea').style.display = 'none';
         document.getElementById('tableWrapper').style.display = 'block';
-        document.getElementById('modalTitle').innerText = (type === 'LP') ? 'LP Safety Performance Merit' : 'CLI Performance (Janch + Honesty Factor)';
+        document.getElementById('modalTitle').innerText = (type === 'LP') ? 'LP Merit List' : 'CLI Merit List (Total Janch + Violations)';
         
         const stats = {};
         if(type === 'CLI') db.MASTER_CLI.forEach(m => { if(m[0]) stats[m[0].trim()] = { count: 0, vios: 0 }; });
@@ -179,10 +179,10 @@
 
         let sorted = Object.entries(stats);
         if(type === 'CLI') {
-            // NEW LOGIC: SCORE = Janch + (Violations * 5)
+            // FIXED LOGIC: SCORE = COUNT + VIOS
             sorted.sort((a,b) => {
-                const sA = a[1].count + (a[1].vios * 5);
-                const sB = b[1].count + (b[1].vios * 5);
+                const sA = a[1].count + a[1].vios;
+                const sB = b[1].count + b[1].vios;
                 return rank === 'BEST' ? (sB - sA) : (sA - sB);
             });
         } else {
@@ -194,7 +194,7 @@
         }
 
         currentHeaders = ["RANK", "NAME", "TOTAL JANCH", "VIOLATIONS", "PERF SCORE"];
-        currentData = sorted.slice(0, 15).map((x, i) => [`#${i+1}`, x[0], x[1].count, x[1].vios, (type==='CLI'?(x[1].count+(x[1].vios*5)):((x[1].count*10)-(x[1].vios*25)))]);
+        currentData = sorted.slice(0, 15).map((x, i) => [`#${i+1}`, x[0], x[1].count, x[1].vios, (type==='CLI'?(x[1].count+x[1].vios):((x[1].count*10)-(x[1].vios*25)))]);
         renderTable();
     }
 
@@ -213,7 +213,7 @@
         document.getElementById('tableWrapper').style.display = 'block';
         const dt = document.getElementById('globalDate').value;
         const key = id === 'BULK' ? 'BULK_DET' : id;
-        document.getElementById('modalTitle').innerText = (onlyVios ? "VIOLATIONS: " : "ALL RECORDS: ") + id;
+        document.getElementById('modalTitle').innerText = (onlyVios ? "VIOLATIONS: " : "RECORDS: ") + id;
         currentHeaders = db[key].h;
         let data = db[key].d;
         if(dt) data = data.filter(r => (r[id==='BULK'?0:2]||'').includes(dt));
@@ -231,8 +231,8 @@
 
     function closeModal() { document.getElementById('dataModal').style.display = 'none'; }
     function resetView() { document.getElementById('globalDate').value = ""; updateUI(); }
-    function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "SECR_Report.xlsx"); }
-    function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a3'); doc.autoTable({ head:[currentHeaders], body:currentData }); doc.save("SECR_Report.pdf"); }
+    function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "Report.xlsx"); }
+    function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a3'); doc.autoTable({ head:[currentHeaders], body:currentData }); doc.save("Report.pdf"); }
     window.onload = loadData;
 </script>
 </body>
