@@ -20,7 +20,7 @@
         .card { background: white; border-radius: 24px; padding: 22px; border: 1px solid #e2e8f0; box-shadow: var(--card-shadow); transition: 0.3s; cursor: pointer; position: relative; }
         .card:hover { transform: translateY(-8px); border-color: var(--accent); }
         .count { font-size: 3rem; font-weight: 800; color: var(--header-bg); margin: 5px 0; display: block; }
-        .graph-box { height: 170px; margin: 15px 0; background: #fff; }
+        .graph-box { height: 170px; margin: 15px 0; background: #fff; border-radius: 12px; }
         .performer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 40px; }
         .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(8px); }
         .modal-content { background: white; width: 96%; max-height: 92vh; border-radius: 24px; padding: 30px; overflow: hidden; display: flex; flex-direction: column; }
@@ -101,7 +101,7 @@
             });
             if(key === 'MASTER_CLI') db.MASTER_CLI = rows.slice(1);
             else { db[key].h = rows[0]; db[key].d = rows.slice(1); }
-        } catch(e) { console.warn("Missing File:", key); }
+        } catch(e) { console.warn("File Missing:", key); }
     }
 
     function renderCards() {
@@ -136,26 +136,26 @@
         const ctx = canvas.getContext('2d');
         if(charts[canvasId]) charts[canvasId].destroy();
 
-        // 1 to 31 Dates generation
         const labels = Array.from({length: 31}, (_, i) => (i + 1).toString().padStart(2, '0'));
         const dateIdx = isBulk ? 0 : 2;
 
         const totals = labels.map(l => {
             const dayData = data.filter(r => {
                 const parts = (r[dateIdx]||'').split(/[-/.]/);
-                const d = isBulk ? parts[0] : parts[2];
+                const d = isBulk ? parts[0] : parts[2]; // CORRECT INDEXING
                 return d && d.padStart(2,'0') === l;
             });
-            return isBulk ? dayData.reduce((a,b)=>a+parseInt(b[1]||0),0) : dayData.length;
+            // If Bulk, sum up the 'Total Count' column (index 1)
+            return isBulk ? dayData.reduce((a,b)=>a+parseInt(b[1]||0), 0) : dayData.length;
         });
 
         charts[canvasId] = new Chart(ctx, {
             type: 'bar',
-            data: { labels, datasets: [{ data: totals, backgroundColor: '#3b82f6', borderRadius: 4 }] },
+            data: { labels, datasets: [{ data: totals, backgroundColor: isBulk ? '#6366f1' : '#3b82f6', borderRadius: 4 }] },
             options: { 
                 responsive:true, maintainAspectRatio:false, 
                 plugins:{ legend:{display:false}, datalabels:{display:isZoomed, anchor:'end', align:'top', font:{weight:'bold'}} },
-                scales:{ y:{display:isZoomed, beginAtZero:true}, x:{grid:{display:false}, ticks:{font:{size:9, weight:'600'}}}}
+                scales:{ y:{display:isZoomed, beginAtZero:true}, x:{grid:{display:false}, ticks:{font:{size:8, weight:'600'}}}}
             }
         });
     }
@@ -176,7 +176,7 @@
         currentHeaders = db[key].h;
         let data = db[key].d;
         if(dt) data = data.filter(r => (r[id==='BULK'?0:2]||'').includes(dt.replace(/-/g,'/')) || r[id==='BULK'?0:2]===dt);
-        if(onlyVios) data = data.filter(r => id==='BULK' ? r.some(c => String(c).toUpperCase()==='YES'||String(c).toUpperCase()==='VIOLATION') : (r[11] && r[11].toUpperCase()!=='NIL'));
+        if(onlyVios) data = data.filter(r => id==='BULK' ? r.some(c => String(c).toUpperCase()==='YES') : (r[11] && r[11].toUpperCase()!=='NIL'));
         currentData = data;
         renderTable(`${id} Details`);
     }
@@ -193,17 +193,10 @@
             stats[name].count++; if(r[11] && r[11].toUpperCase() !== 'NIL') stats[name].vios++;
         });
         let sorted = Object.entries(stats);
-        if(type === 'LP') {
-            sorted.sort((a,b) => {
-                const rA = a[1].vios/(a[1].count||1), rB = b[1].vios/(b[1].count||1);
-                return rank === 'WORST' ? (rB - rA || b[1].count - a[1].count) : (b[1].count - a[1].count || a[1].vios - b[1].vios);
-            });
-        } else {
-            sorted.sort((a,b) => rank === 'WORST' ? a[1].count - b[1].count : b[1].count - a[1].count);
-        }
-        currentHeaders = ["RANK", "NAME", "ACTIVITY", "VIOLATIONS", "RATIO"];
+        sorted.sort((a,b) => rank === 'WORST' ? a[1].count - b[1].count : b[1].count - a[1].count);
+        currentHeaders = ["RANK", "NAME", "ACTIVITY", "VIOS", "RATIO"];
         currentData = sorted.slice(0, 15).map((x, i) => [`#${i+1}`, x[0], x[1].count, x[1].vios, (x[1].count > 0 ? (x[1].vios/x[1].count).toFixed(2) : "0.00")]);
-        renderTable(type==='LP'?'LP Star Ranking':'CLI Audit Summary');
+        renderTable(title = type === 'LP' ? 'LP Performance' : 'CLI Performance');
     }
 
     function renderTable(title) {
@@ -216,8 +209,8 @@
 
     function closeModal() { document.getElementById('dataModal').style.display = 'none'; }
     function resetView() { document.getElementById('globalDate').value = ""; updateUI(); }
-    function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "SECR_Report.xlsx"); }
-    function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a3'); doc.autoTable({ head:[currentHeaders], body:currentData }); doc.save("SECR_Report.pdf"); }
+    function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "Report.xlsx"); }
+    function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a3'); doc.autoTable({ head:[currentHeaders], body:currentData }); doc.save("Report.pdf"); }
     window.onload = loadData;
 </script>
 </body>
