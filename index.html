@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SECR RAIPUR | MASTER DASHBOARD v12.4</title>
+    <title>SECR RAIPUR | MASTER DASHBOARD v12.5</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -61,7 +61,7 @@
 <div class="modal" id="dataModal">
     <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2 id="modalTitle" style="margin:0; font-weight:800; color:#0f172a;">View</h2>
+            <h2 id="modalTitle" style="margin:0; font-weight:800; color:#0f172a;">Details View</h2>
             <div style="display:flex; gap:12px;">
                 <button class="btn-act" style="background:#15803d;" onclick="exportExcel()">EXCEL</button>
                 <button class="btn-act" style="background:#be123c;" onclick="exportPDF()">PDF</button>
@@ -100,7 +100,7 @@
             });
             if(key === 'MASTER_CLI') db.MASTER_CLI = rows.slice(1);
             else { db[key].h = rows[0]; db[key].d = rows.slice(1); }
-        } catch(e) { console.warn("Missing:", key); }
+        } catch(e) { console.warn("File Error:", key); }
     }
 
     function renderCards() {
@@ -136,36 +136,40 @@
         if(charts[canvasId]) charts[canvasId].destroy();
 
         const labels = Array.from({length: 31}, (_, i) => (i + 1).toString().padStart(2, '0'));
-        
-        // Calculate daily values
         const dailyValues = labels.map(l => {
             const dayData = data.filter(r => {
                 const dateVal = r[isBulk ? 0 : 2] || '';
                 const parts = dateVal.split(/[-/.]/);
-                const dayPart = parts[2]; 
+                const dayPart = parts[2] || parts[0]; 
                 return dayPart && dayPart.padStart(2,'0') === l;
             });
             return isBulk ? dayData.reduce((a,b)=>a+parseInt(b[1]||0), 0) : dayData.length;
         });
 
-        // Calculate specific average for THIS graph only
+        // SMART AVERAGE: Current month Divide by Current Date, Past month by Full Month
+        const now = new Date();
+        const selectedMonthStr = document.getElementById('monthSelector').value; 
+        const [selYear, selMonth] = selectedMonthStr.split('-').map(Number);
+        
+        let daysToDivide = 31;
+        if (selYear === now.getFullYear() && selMonth === (now.getMonth() + 1)) {
+            daysToDivide = now.getDate(); 
+        } else {
+            daysToDivide = new Date(selYear, selMonth, 0).getDate();
+        }
+
         const totalSum = dailyValues.reduce((a, b) => a + b, 0);
-        const graphAverage = totalSum / 31;
+        const graphAverage = totalSum / daysToDivide;
 
         charts[canvasId] = new Chart(ctx, {
             type: 'bar',
             data: { 
                 labels, 
                 datasets: [
-                    { 
-                        data: dailyValues, 
-                        backgroundColor: '#3b82f6', 
-                        borderRadius: 4,
-                        order: 2
-                    },
+                    { data: dailyValues, backgroundColor: '#3b82f6', borderRadius: 4, order: 2 },
                     {
                         label: 'Average',
-                        data: new Array(31).fill(graphAverage), // Create fresh array with current avg
+                        data: new Array(31).fill(graphAverage),
                         borderColor: '#ef4444',
                         borderWidth: 2,
                         borderDash: [5, 5],
@@ -191,8 +195,8 @@
         document.getElementById('dataModal').style.display = 'flex';
         document.getElementById('zoomGraphArea').style.display = 'block';
         document.getElementById('tableWrapper').style.display = 'none';
-        const titles = { 'SPM': 'SPM PERFORMANCE', 'CVVRS': 'CVVRS PERFORMANCE', 'TELOC': 'TELOC PERFORMANCE', 'BULK': 'BULK PERFORMANCE' };
-        document.getElementById('modalTitle').innerText = titles[id] || "Graph View";
+        const titles = { 'SPM': 'SPM AUDIT PERFORMANCE', 'CVVRS': 'CVVRS ANALYSIS PERFORMANCE', 'TELOC': 'TELOC CELL PERFORMANCE', 'BULK': 'BULK AUTOMATION PERFORMANCE' };
+        document.getElementById('modalTitle').innerText = titles[id] || "Performance View";
         const key = id === 'BULK' ? 'BULK_SUM' : id;
         setTimeout(() => draw('zoomedChart', db[key].d, id === 'BULK', true), 200);
     }
@@ -202,7 +206,7 @@
         document.getElementById('tableWrapper').style.display = 'block';
         const dt = document.getElementById('globalDate').value;
         const key = id === 'BULK' ? 'BULK_DET' : id;
-        document.getElementById('modalTitle').innerText = (onlyVios ? "VIOLATIONS: " : "RECORDS: ") + id;
+        document.getElementById('modalTitle').innerText = (onlyVios ? "VIOLATIONS: " : "ALL RECORDS: ") + id;
         currentHeaders = db[key].h;
         let data = db[key].d;
         if(dt) data = data.filter(r => (r[id==='BULK'?0:2]||'').includes(dt));
@@ -214,7 +218,7 @@
     function openMerit(type, rank) {
         document.getElementById('zoomGraphArea').style.display = 'none';
         document.getElementById('tableWrapper').style.display = 'block';
-        document.getElementById('modalTitle').innerText = (type === 'LP') ? 'LP Safety Performance' : 'CLI Audit Performance';
+        document.getElementById('modalTitle').innerText = (type === 'LP') ? 'LP Safety Merit List (Quality + Safety)' : 'CLI Audit Performance List';
         const stats = {};
         if(type === 'CLI') db.MASTER_CLI.forEach(m => { if(m[0]) stats[m[0].trim()] = { count: 0, vios: 0 }; });
         [...db.SPM.d, ...db.CVVRS.d, ...db.TELOC.d].forEach(r => {
@@ -233,7 +237,7 @@
                 return rank === 'BEST' ? (sB - sA) : (sA - sB);
             });
         }
-        currentHeaders = ["RANK", "NAME", "TOTAL JANCH", "VIOLATIONS", "SCORE"];
+        currentHeaders = ["RANK", "NAME", "TOTAL JANCH", "VIOLATIONS", "PERF SCORE"];
         currentData = sorted.slice(0, 15).map((x, i) => [`#${i+1}`, x[0], x[1].count, x[1].vios, (type==='CLI'?(x[1].count+x[1].vios):((x[1].count*10)-(x[1].vios*25)))]);
         renderTable();
     }
