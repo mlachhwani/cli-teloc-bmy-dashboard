@@ -17,19 +17,18 @@
         .main-title { font-weight: 800; font-size: 1.5rem; background: linear-gradient(to right, #60a5fa, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .container { max-width: 1600px; margin: 30px auto; padding: 0 20px; }
         .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .card { background: white; border-radius: 24px; padding: 22px; border: 1px solid #e2e8f0; box-shadow: var(--card-shadow); transition: 0.3s; cursor: pointer; position: relative; overflow: hidden; }
+        .card { background: white; border-radius: 24px; padding: 22px; border: 1px solid #e2e8f0; box-shadow: var(--card-shadow); transition: 0.3s; cursor: pointer; position: relative; }
         .card:hover { transform: translateY(-8px); border-color: var(--accent); }
         .count { font-size: 3rem; font-weight: 800; color: var(--header-bg); margin: 5px 0; display: block; }
-        .graph-box { height: 170px; margin: 15px 0; background: #fff; border-radius: 12px; }
+        .graph-box { height: 170px; margin: 15px 0; background: #fff; }
         .performer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 40px; }
         .modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.95); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(8px); }
         .modal-content { background: white; width: 96%; max-height: 92vh; border-radius: 24px; padding: 30px; overflow: hidden; display: flex; flex-direction: column; }
         .table-wrapper { overflow: auto; flex-grow: 1; border: 1px solid #e2e8f0; border-radius: 12px; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #1e293b; color: white; padding: 14px; font-size: 0.75rem; position: sticky; top: 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        table { width: 100%; border-collapse: collapse; white-space: nowrap; }
+        th { background: #1e293b; color: white; padding: 14px; font-size: 0.75rem; position: sticky; top: 0; text-transform: uppercase; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; text-align: center; font-weight: 600; }
-        .btn-act { padding: 12px 18px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; color: white; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .btn-act:active { transform: scale(0.95); }
+        .btn-act { padding: 12px 18px; border-radius: 12px; border: none; cursor: pointer; font-weight: 700; color: white; transition: 0.3s; }
         #zoomGraphArea { height: 350px; width: 100%; margin-bottom: 20px; display: none; }
     </style>
 </head>
@@ -41,11 +40,11 @@
         <div><span class="main-title">SECR RAIPUR</span><br><small style="color:#94a3b8; font-weight:700;">ELECTRICAL (OP) PERFORMANCE</small></div>
     </div>
     <div style="display:flex; gap:12px; align-items:center;">
-        <select id="monthSelector" onchange="loadData()" style="padding:10px; border-radius:12px; font-weight:700; border:1px solid #334155;">
+        <select id="monthSelector" onchange="loadData()" style="padding:10px; border-radius:12px; font-weight:700;">
             <option value="2025-12">December 2025</option>
             <option value="2026-01">January 2026</option>
         </select>
-        <input type="date" id="globalDate" onchange="updateUI()" style="padding:10px; border-radius:12px; font-weight:700; border:1px solid #334155;">
+        <input type="date" id="globalDate" onchange="updateUI()" style="padding:10px; border-radius:12px; font-weight:700;">
         <button onclick="resetView()" class="btn-act" style="background:var(--accent)">ALL DATA</button>
     </div>
 </header>
@@ -63,11 +62,11 @@
 <div class="modal" id="dataModal">
     <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2 id="modalTitle" style="margin:0; font-weight:800; color:#0f172a; font-size:1.6rem;">Analysis Details</h2>
-            <div style="display:flex; gap:12px; align-items:center;">
+            <h2 id="modalTitle" style="margin:0; font-weight:800; color:#0f172a;">Analysis Details</h2>
+            <div style="display:flex; gap:12px;">
                 <button class="btn-act" style="background:#15803d;" onclick="exportExcel()">EXCEL</button>
                 <button class="btn-act" style="background:#be123c;" onclick="exportPDF()">PDF</button>
-                <span onclick="closeModal()" style="cursor:pointer; font-size:3rem; color:#64748b; margin-left:20px;">&times;</span>
+                <span onclick="closeModal()" style="cursor:pointer; font-size:3rem; color:#64748b;">&times;</span>
             </div>
         </div>
         <div id="zoomGraphArea"><canvas id="zoomedChart"></canvas></div>
@@ -102,19 +101,19 @@
             });
             if(key === 'MASTER_CLI') db.MASTER_CLI = rows.slice(1);
             else { db[key].h = rows[0]; db[key].d = rows.slice(1); }
-        } catch(e) { console.warn("Missing file:", key); }
+        } catch(e) { console.warn("Missing:", key); }
     }
 
     function renderCards() {
         const cats = [{id:'SPM', t:'SPM AUDITS'}, {id:'CVVRS', t:'CVVRS ANALYSIS'}, {id:'TELOC', t:'TELOC CELL'}, {id:'BULK', t:'BULK AUTO'}];
         document.getElementById('mainGrid').innerHTML = cats.map(c => `
             <div class="card" onclick="zoomGraph('${c.id}')">
-                <small style="font-weight:800; color:#64748b; letter-spacing:1px;">${c.t}</small>
+                <small style="font-weight:800; color:#64748b;">${c.t}</small>
                 <span class="count" id="count_${c.id}">0</span>
                 <div class="graph-box"><canvas id="chart_${c.id}"></canvas></div>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn-act" style="background:#1e293b; flex:1; font-size:0.75rem;" onclick="event.stopPropagation(); showTable('${c.id}', false)">VIEW LIST</button>
-                    <button class="btn-act" style="background:var(--danger); flex:1; font-size:0.75rem;" onclick="event.stopPropagation(); showTable('${c.id}', true)">VIOLATIONS</button>
+                    <button class="btn-act" style="background:#1e293b; flex:1; font-size:0.75rem;" onclick="event.stopPropagation(); showTable('${c.id}', false)">LIST</button>
+                    <button class="btn-act" style="background:var(--danger); flex:1; font-size:0.75rem;" onclick="event.stopPropagation(); showTable('${c.id}', true)">VIOS</button>
                 </div>
             </div>`).join('');
     }
@@ -131,9 +130,6 @@
         draw(`chart_BULK`, db.BULK_SUM.d, true);
     }
 
-    <script>
-    // ... (Data Loading logic same rahega) ...
-
     function draw(canvasId, data, isBulk, isZoomed = false) {
         const canvas = document.getElementById(canvasId);
         if(!canvas) return;
@@ -141,44 +137,28 @@
         if(charts[canvasId]) charts[canvasId].destroy();
         
         const dateIdx = isBulk ? 0 : 2;
-        // Mahine ki saari Unique Dates nikalna
+        // Exact Date Logic for 01, 02...
         const labels = [...new Set(data.map(r => {
             const parts = (r[dateIdx]||'').split(/[-/.]/);
-            return isBulk ? parts[0] : parts[2]; // Bulk mein date pehle hoti hai, manual mein last mein
-        }))].filter(x => x && x.length <= 2).sort((a,b) => a-b);
+            return isBulk ? parts[0] : parts[2];
+        }))].filter(x => x && x.length <= 2).sort((a,b)=>a-b);
 
         const totals = labels.map(l => {
-            const targetDay = l.padStart(2, '0');
             const dayData = data.filter(r => {
-                const dateVal = r[dateIdx] || '';
-                const parts = dateVal.split(/[-/.]/);
-                // EXACT MATCH LOGIC: Check if the Day part is exactly equal to our label
-                const currentDay = isBulk ? parts[0] : parts[2];
-                return currentDay === targetDay;
+                const parts = (r[dateIdx]||'').split(/[-/.]/);
+                const d = isBulk ? parts[0] : parts[2];
+                return d && d.padStart(2,'0') === l.padStart(2,'0');
             });
             return isBulk ? dayData.reduce((a,b)=>a+parseInt(b[1]||0),0) : dayData.length;
         });
 
         charts[canvasId] = new Chart(ctx, {
             type: 'bar',
-            data: { labels, datasets: [{ 
-                data: totals, 
-                backgroundColor: isBulk ? '#6366f1' : '#3b82f6', 
-                borderRadius: 5 
-            }] },
-            options: { 
-                responsive:true, maintainAspectRatio:false, 
-                plugins:{ 
-                    legend:{display:false}, 
-                    datalabels:{display:isZoomed, anchor:'end', align:'top', font:{weight:'bold'}} 
-                }, 
-                scales:{ 
-                    y:{display:isZoomed, beginAtZero:true}, 
-                    x:{grid:{display:false}, ticks:{font:{weight:'700'}}} 
-                } 
-            }
+            data: { labels, datasets: [{ data: totals, backgroundColor: '#3b82f6', borderRadius: 5 }] },
+            options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{display:isZoomed}, x:{grid:{display:false}}} }
         });
     }
+
     function zoomGraph(id) {
         document.getElementById('dataModal').style.display = 'flex';
         document.getElementById('zoomGraphArea').style.display = 'block';
@@ -194,11 +174,10 @@
         const key = id === 'BULK' ? 'BULK_DET' : id;
         currentHeaders = db[key].h;
         let data = db[key].d;
-        if(dt) data = data.filter(r => r[id === 'BULK' ? 0 : 2].includes(dt.replace(/-/g, '/')) || r[id === 'BULK' ? 0 : 2] === dt);
+        if(dt) data = data.filter(r => (r[id==='BULK'?0:2]||'').includes(dt.replace(/-/g,'/')) || r[id==='BULK'?0:2]===dt);
         if(onlyVios) data = data.filter(r => id==='BULK' ? r.some(c => String(c).toUpperCase()==='YES') : (r[11] && r[11].toUpperCase()!=='NIL'));
-        
         currentData = data;
-        renderTable(`${id} ${onlyVios ? 'Violations' : 'Details'}`);
+        renderTable(`${id} Details`);
     }
 
     function openMerit(type, rank) {
@@ -215,8 +194,7 @@
         let sorted = Object.entries(stats);
         if(type === 'LP') {
             sorted.sort((a,b) => {
-                const rA = a[1].count > 0 ? a[1].vios/a[1].count : 0;
-                const rB = b[1].count > 0 ? b[1].vios/b[1].count : 0;
+                const rA = a[1].vios/(a[1].count||1), rB = b[1].vios/(b[1].count||1);
                 return rank === 'WORST' ? (rB - rA || b[1].count - a[1].count) : (b[1].count - a[1].count || a[1].vios - b[1].vios);
             });
         } else {
@@ -224,7 +202,7 @@
         }
         currentHeaders = ["RANK", "NAME", "ACTIVITY", "VIOLATIONS", "RATIO"];
         currentData = sorted.slice(0, 15).map((x, i) => [`#${i+1}`, x[0], x[1].count, x[1].vios, (x[1].count > 0 ? (x[1].vios/x[1].count).toFixed(2) : "0.00")]);
-        renderTable(type === 'LP' ? 'LP Performance' : 'CLI Audit Status');
+        renderTable(type==='LP'?'LP Rankings':'CLI Status');
     }
 
     function renderTable(title) {
@@ -237,8 +215,8 @@
 
     function closeModal() { document.getElementById('dataModal').style.display = 'none'; }
     function resetView() { document.getElementById('globalDate').value = ""; updateUI(); }
-    function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "SECR_Report.xlsx"); }
-    function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a3'); doc.autoTable({ head:[currentHeaders], body:currentData, styles:{fontSize:7} }); doc.save("SECR_Report.pdf"); }
+    function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "Report.xlsx"); }
+    function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a3'); doc.autoTable({ head:[currentHeaders], body:currentData }); doc.save("Report.pdf"); }
     window.onload = loadData;
 </script>
 </body>
