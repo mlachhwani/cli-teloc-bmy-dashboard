@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SECR RAIPUR | MASTER DASHBOARD v12.0</title>
+    <title>SECR RAIPUR | MASTER DASHBOARD v12.2</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -62,7 +62,7 @@
 <div class="modal" id="dataModal">
     <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2 id="modalTitle" style="margin:0; font-weight:800; color:#0f172a;">Performance Details</h2>
+            <h2 id="modalTitle" style="margin:0; font-weight:800; color:#0f172a;">Details View</h2>
             <div style="display:flex; gap:12px;">
                 <button class="btn-act" style="background:#15803d;" onclick="exportExcel()">EXCEL</button>
                 <button class="btn-act" style="background:#be123c;" onclick="exportPDF()">PDF</button>
@@ -141,7 +141,7 @@
             const dayData = data.filter(r => {
                 const dateVal = r[isBulk ? 0 : 2] || '';
                 const parts = dateVal.split(/[-/.]/);
-                const dayPart = parts[2]; // Assumes YYYY-MM-DD
+                const dayPart = parts[2]; 
                 return dayPart && dayPart.padStart(2,'0') === l;
             });
             return isBulk ? dayData.reduce((a,b)=>a+parseInt(b[1]||0), 0) : dayData.length;
@@ -162,6 +162,11 @@
         document.getElementById('dataModal').style.display = 'flex';
         document.getElementById('zoomGraphArea').style.display = 'block';
         document.getElementById('tableWrapper').style.display = 'none';
+        
+        // TITLE FIX FOR GRAPH POPUP
+        const titles = { 'SPM': 'SPM AUDIT TIMELINE', 'CVVRS': 'CVVRS ANALYSIS TIMELINE', 'TELOC': 'TELOC CELL TIMELINE', 'BULK': 'BULK VIOLATION TIMELINE' };
+        document.getElementById('modalTitle').innerText = titles[id] || "Graph View";
+        
         const key = id === 'BULK' ? 'BULK_SUM' : id;
         setTimeout(() => draw('zoomedChart', db[key].d, id === 'BULK', true), 200);
     }
@@ -171,17 +176,25 @@
         document.getElementById('tableWrapper').style.display = 'block';
         const dt = document.getElementById('globalDate').value;
         const key = id === 'BULK' ? 'BULK_DET' : id;
+        
+        // TITLE FIX FOR TABLE POPUP
+        document.getElementById('modalTitle').innerText = (onlyVios ? "VIOLATION LIST: " : "DATA LIST: ") + id;
+        
         currentHeaders = db[key].h;
         let data = db[key].d;
         if(dt) data = data.filter(r => (r[id==='BULK'?0:2]||'').includes(dt));
         if(onlyVios) data = data.filter(r => id==='BULK' ? r.some(c => String(c).toUpperCase()==='YES') : (r[11] && r[11].toUpperCase()!=='NIL'));
         currentData = data;
-        renderTable(`${id} Details`);
+        renderTable();
     }
 
     function openMerit(type, rank) {
         document.getElementById('zoomGraphArea').style.display = 'none';
         document.getElementById('tableWrapper').style.display = 'block';
+        
+        // TITLE FIX FOR MERIT POPUP
+        document.getElementById('modalTitle').innerText = (type === 'LP') ? 'LP Safety Performance Merit List' : 'CLI Audit Performance Merit List';
+        
         const stats = {};
         if(type === 'CLI') db.MASTER_CLI.forEach(m => { if(m[0]) stats[m[0].trim()] = { count: 0, vios: 0 }; });
         [...db.SPM.d, ...db.CVVRS.d, ...db.TELOC.d].forEach(r => {
@@ -193,10 +206,8 @@
 
         let sorted = Object.entries(stats);
         if(type === 'CLI') {
-            // CLI Rank: Analysis Count Primary, Violation Count Secondary
             sorted.sort((a,b) => rank === 'BEST' ? (b[1].count - a[1].count || b[1].vios - a[1].vios) : (a[1].count - b[1].count));
         } else {
-            // LP Rank: (Count * 10) - (Vios * 25) -> High volume clean records win
             sorted.sort((a,b) => {
                 const sA = (a[1].count * 10) - (a[1].vios * 25);
                 const sB = (b[1].count * 10) - (b[1].vios * 25);
@@ -206,21 +217,20 @@
 
         currentHeaders = ["RANK", "NAME", "TOTAL JANCH", "VIOLATIONS", "PERF SCORE"];
         currentData = sorted.slice(0, 15).map((x, i) => [`#${i+1}`, x[0], x[1].count, x[1].vios, (type==='CLI'?(x[1].count+x[1].vios):((x[1].count*10)-(x[1].vios*25)))]);
-        renderTable(type === 'LP' ? 'LP Safety Merit List' : 'CLI Performance List');
+        renderTable();
     }
 
-    function renderTable(title) {
+    function renderTable() {
         let html = `<table><thead><tr>${currentHeaders.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
         html += currentData.map(r => `<tr>${r.map(c => `<td>${c||'-'}</td>`).join('')}</tr>`).join('');
         document.getElementById('tableWrapper').innerHTML = html + `</tbody></table>`;
-        document.getElementById('modalTitle').innerText = title;
         document.getElementById('dataModal').style.display = 'flex';
     }
 
     function closeModal() { document.getElementById('dataModal').style.display = 'none'; }
     function resetView() { document.getElementById('globalDate').value = ""; updateUI(); }
-    function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "Report.xlsx"); }
-    function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a3'); doc.autoTable({ head:[currentHeaders], body:currentData }); doc.save("Report.pdf"); }
+    function exportExcel() { const ws = XLSX.utils.aoa_to_sheet([currentHeaders, ...currentData]); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Data"); XLSX.writeFile(wb, "SECR_Report.xlsx"); }
+    function exportPDF() { const { jsPDF } = window.jspdf; const doc = new jsPDF('l', 'mm', 'a3'); doc.autoTable({ head:[currentHeaders], body:currentData }); doc.save("SECR_Report.pdf"); }
     window.onload = loadData;
 </script>
 </body>
