@@ -61,7 +61,7 @@
 <div class="modal" id="dataModal">
     <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2 id="modalTitle" style="margin:0; font-weight:800; color:#0f172a;">Performance View</h2>
+            <h2 id="modalTitle" style="margin:0; font-weight:800; color:#0f172a;">View</h2>
             <div style="display:flex; gap:12px;">
                 <button class="btn-act" style="background:#15803d;" onclick="exportExcel()">EXCEL</button>
                 <button class="btn-act" style="background:#be123c;" onclick="exportPDF()">PDF</button>
@@ -137,8 +137,8 @@
 
         const labels = Array.from({length: 31}, (_, i) => (i + 1).toString().padStart(2, '0'));
         
-        // HAR GRAPH KA APNA DATA TOTALS
-        const currentGraphTotals = labels.map(l => {
+        // Calculate daily values
+        const dailyValues = labels.map(l => {
             const dayData = data.filter(r => {
                 const dateVal = r[isBulk ? 0 : 2] || '';
                 const parts = dateVal.split(/[-/.]/);
@@ -148,9 +148,9 @@
             return isBulk ? dayData.reduce((a,b)=>a+parseInt(b[1]||0), 0) : dayData.length;
         });
 
-        // HAR GRAPH KA APNA UNIQUE AVERAGE
-        const sum = currentGraphTotals.reduce((a, b) => a + b, 0);
-        const avg = sum / labels.length;
+        // Calculate specific average for THIS graph only
+        const totalSum = dailyValues.reduce((a, b) => a + b, 0);
+        const graphAverage = totalSum / 31;
 
         charts[canvasId] = new Chart(ctx, {
             type: 'bar',
@@ -158,16 +158,16 @@
                 labels, 
                 datasets: [
                     { 
-                        data: currentGraphTotals, 
+                        data: dailyValues, 
                         backgroundColor: '#3b82f6', 
                         borderRadius: 4,
                         order: 2
                     },
                     {
-                        label: 'Avg',
-                        data: Array(31).fill(avg),
+                        label: 'Average',
+                        data: new Array(31).fill(graphAverage), // Create fresh array with current avg
                         borderColor: '#ef4444',
-                        borderWidth: 1.5,
+                        borderWidth: 2,
                         borderDash: [5, 5],
                         type: 'line',
                         pointRadius: 0,
@@ -191,7 +191,7 @@
         document.getElementById('dataModal').style.display = 'flex';
         document.getElementById('zoomGraphArea').style.display = 'block';
         document.getElementById('tableWrapper').style.display = 'none';
-        const titles = { 'SPM': 'SPM AUDIT TIMELINE', 'CVVRS': 'CVVRS ANALYSIS TIMELINE', 'TELOC': 'TELOC CELL TIMELINE', 'BULK': 'BULK VIOLATION TIMELINE' };
+        const titles = { 'SPM': 'SPM PERFORMANCE', 'CVVRS': 'CVVRS PERFORMANCE', 'TELOC': 'TELOC PERFORMANCE', 'BULK': 'BULK PERFORMANCE' };
         document.getElementById('modalTitle').innerText = titles[id] || "Graph View";
         const key = id === 'BULK' ? 'BULK_SUM' : id;
         setTimeout(() => draw('zoomedChart', db[key].d, id === 'BULK', true), 200);
@@ -202,7 +202,7 @@
         document.getElementById('tableWrapper').style.display = 'block';
         const dt = document.getElementById('globalDate').value;
         const key = id === 'BULK' ? 'BULK_DET' : id;
-        document.getElementById('modalTitle').innerText = (onlyVios ? "VIOLATION LIST: " : "DATA LIST: ") + id;
+        document.getElementById('modalTitle').innerText = (onlyVios ? "VIOLATIONS: " : "RECORDS: ") + id;
         currentHeaders = db[key].h;
         let data = db[key].d;
         if(dt) data = data.filter(r => (r[id==='BULK'?0:2]||'').includes(dt));
@@ -214,7 +214,7 @@
     function openMerit(type, rank) {
         document.getElementById('zoomGraphArea').style.display = 'none';
         document.getElementById('tableWrapper').style.display = 'block';
-        document.getElementById('modalTitle').innerText = (type === 'LP') ? 'LP Safety Performance Merit List' : 'CLI Audit Performance Merit List';
+        document.getElementById('modalTitle').innerText = (type === 'LP') ? 'LP Safety Performance' : 'CLI Audit Performance';
         const stats = {};
         if(type === 'CLI') db.MASTER_CLI.forEach(m => { if(m[0]) stats[m[0].trim()] = { count: 0, vios: 0 }; });
         [...db.SPM.d, ...db.CVVRS.d, ...db.TELOC.d].forEach(r => {
@@ -233,7 +233,7 @@
                 return rank === 'BEST' ? (sB - sA) : (sA - sB);
             });
         }
-        currentHeaders = ["RANK", "NAME", "TOTAL JANCH", "VIOLATIONS", "PERF SCORE"];
+        currentHeaders = ["RANK", "NAME", "TOTAL JANCH", "VIOLATIONS", "SCORE"];
         currentData = sorted.slice(0, 15).map((x, i) => [`#${i+1}`, x[0], x[1].count, x[1].vios, (type==='CLI'?(x[1].count+x[1].vios):((x[1].count*10)-(x[1].vios*25)))]);
         renderTable();
     }
