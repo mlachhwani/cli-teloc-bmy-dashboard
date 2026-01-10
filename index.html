@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SECR RAIPUR | MASTER DASHBOARD v12.3</title>
+    <title>SECR RAIPUR | MASTER DASHBOARD v12.4</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
@@ -62,7 +61,7 @@
 <div class="modal" id="dataModal">
     <div class="modal-content">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h2 id="modalTitle" style="margin:0; font-weight:800; color:#0f172a;">Details View</h2>
+            <h2 id="modalTitle" style="margin:0; font-weight:800; color:#0f172a;">Performance View</h2>
             <div style="display:flex; gap:12px;">
                 <button class="btn-act" style="background:#15803d;" onclick="exportExcel()">EXCEL</button>
                 <button class="btn-act" style="background:#be123c;" onclick="exportPDF()">PDF</button>
@@ -101,7 +100,7 @@
             });
             if(key === 'MASTER_CLI') db.MASTER_CLI = rows.slice(1);
             else { db[key].h = rows[0]; db[key].d = rows.slice(1); }
-        } catch(e) { console.warn("Missing File:", key); }
+        } catch(e) { console.warn("Missing:", key); }
     }
 
     function renderCards() {
@@ -137,7 +136,9 @@
         if(charts[canvasId]) charts[canvasId].destroy();
 
         const labels = Array.from({length: 31}, (_, i) => (i + 1).toString().padStart(2, '0'));
-        const totals = labels.map(l => {
+        
+        // HAR GRAPH KA APNA DATA TOTALS
+        const currentGraphTotals = labels.map(l => {
             const dayData = data.filter(r => {
                 const dateVal = r[isBulk ? 0 : 2] || '';
                 const parts = dateVal.split(/[-/.]/);
@@ -147,8 +148,8 @@
             return isBulk ? dayData.reduce((a,b)=>a+parseInt(b[1]||0), 0) : dayData.length;
         });
 
-        // CALCULATE AVERAGE
-        const sum = totals.reduce((a, b) => a + b, 0);
+        // HAR GRAPH KA APNA UNIQUE AVERAGE
+        const sum = currentGraphTotals.reduce((a, b) => a + b, 0);
         const avg = sum / labels.length;
 
         charts[canvasId] = new Chart(ctx, {
@@ -157,17 +158,16 @@
                 labels, 
                 datasets: [
                     { 
-                        label: 'Daily Count',
-                        data: totals, 
+                        data: currentGraphTotals, 
                         backgroundColor: '#3b82f6', 
                         borderRadius: 4,
                         order: 2
                     },
                     {
-                        label: 'Average',
+                        label: 'Avg',
                         data: Array(31).fill(avg),
                         borderColor: '#ef4444',
-                        borderWidth: 2,
+                        borderWidth: 1.5,
                         borderDash: [5, 5],
                         type: 'line',
                         pointRadius: 0,
