@@ -140,7 +140,8 @@
         const dateIdx = isBulk ? 0 : 2;
         const labels = [...new Set(data.map(r => r[dateIdx]?.split('-')[2] || r[dateIdx]?.split('/')[2] || r[dateIdx]?.split('.')[0]))].filter(x => x && x.length <= 2).sort();
         const totals = labels.map(l => {
-            const dayData = data.filter(r => (r[dateIdx]||'').includes(l.padStart(2, '0')));
+            const target = l.padStart(2, '0');
+            const dayData = data.filter(r => (r[dateIdx]||'').includes(target));
             return isBulk ? dayData.reduce((a,b)=>a+parseInt(b[1]||0),0) : dayData.length;
         });
 
@@ -174,11 +175,7 @@
         if(onlyVios) data = data.filter(r => id==='BULK' ? r.some(c => String(c).toUpperCase()==='YES') : (r[11] && r[11].toUpperCase()!=='NIL'));
         
         currentData = data;
-        let html = `<table><thead><tr>${currentHeaders.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>`;
-        html += currentData.map(r => `<tr>${r.map(c => `<td>${c||'-'}</td>`).join('')}</tr>`).join('');
-        document.getElementById('tableWrapper').innerHTML = html + `</tbody></table>`;
-        document.getElementById('modalTitle').innerText = `${id} ${onlyVios ? 'Violations' : 'Details'}`;
-        document.getElementById('dataModal').style.display = 'flex';
+        renderTable(`${id} ${onlyVios ? 'Violations' : 'Details'}`);
     }
 
     function openMerit(type, rank) {
